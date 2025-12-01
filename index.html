@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WebAuthn Explorer — Understand & Test WebAuthn Features</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-card: #0b1020;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --accent-purple: #8b5cf6;
+      --accent-teal: #14b8a6;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #eab308;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.2);
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.9);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(ellipse at top, #111827 0%, #020617 50%, #000 100%);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      max-width: 1280px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ===== Header ===== */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      max-width: 550px;
+      line-height: 1.5;
+    }
+
+    .header-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .pill {
+      font-size: 0.72rem;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .browser-pill {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* ===== Navigation Tabs ===== */
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease-out;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab.active {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+      color: white;
+      box-shadow: 0 2px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .nav-tab-icon {
+      font-size: 1.1rem;
+    }
+
+    .nav-tab-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--success);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===== Main Content ===== */
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .check-section {
+      display: none;
+    }
+
+    .check-section.active {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-title-block h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title-block p {
+      margin: 4px 0 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      max-width: 600px;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== Buttons ===== */
+    button.primary {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s ease-out, box-shadow 0.15s ease-out, filter 0.15s ease-out;
+    }
+
+    button.primary:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 12px 32px rgba(37, 99, 235, 0.55);
+    }
+
+    button.primary:active {
+      transform: translateY(0);
+      filter: brightness(0.95);
+    }
+
+    button.secondary {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.12s ease-out;
+    }
+
+    button.secondary:hover {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+      filter: none !important;
+    }
+
+    /* ===== Cards ===== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 18px;
+    }
+
+    @media (max-width: 840px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      border-radius: var(--radius-xl);
+      background: radial-gradient(ellipse at top left, #111827 0%, #020617 70%);
+      border: 1px solid rgba(30, 64, 175, 0.35);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.1) 0, transparent 50%),
+        radial-gradient(circle at 100% 0, rgba(139, 92, 246, 0.1) 0, transparent 45%);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #9ca3af;
+    }
+
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ===== Status Badges ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+    }
+
+    .badge.ok .badge-dot { background: var(--success); box-shadow: 0 0 8px rgba(34, 197, 94, 0.7); }
+    .badge.warn .badge-dot { background: var(--warning); box-shadow: 0 0 8px rgba(234, 179, 8, 0.7); }
+    .badge.error .badge-dot { background: var(--danger); box-shadow: 0 0 8px rgba(239, 68, 68, 0.7); }
+
+    /* ===== Section Labels ===== */
+    .section-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+      padding-bottom: 5px;
+      margin-bottom: 8px;
+    }
+
+    /* ===== Capability / Check Items ===== */
+    .check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px 14px;
+      background: rgba(15, 23, 42, 0.55);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .check-item:hover {
+      border-color: rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .check-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .check-item-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .check-item-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .check-item-status.supported { color: var(--success); }
+    .check-item-status.not-supported { color: var(--danger); }
+    .check-item-status.unknown { color: var(--warning); }
+
+    .check-item-description {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    .dot-indicator.ok { background: var(--success); box-shadow: 0 0 6px rgba(34, 197, 94, 0.5); }
+    .dot-indicator.no { background: var(--danger); box-shadow: 0 0 6px rgba(239, 68, 68, 0.5); }
+    .dot-indicator.maybe { background: var(--warning); box-shadow: 0 0 6px rgba(234, 179, 8, 0.5); }
+
+    /* ===== Environment Grid ===== */
+    .env-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .env-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.06);
+    }
+
+    .env-label {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    .env-value {
+      font-size: 0.82rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ===== Summary Stats ===== */
+    .summary-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 18px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      min-width: 75px;
+    }
+
+    .stat-number {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .stat-number.green { color: var(--success); }
+    .stat-number.red { color: var(--danger); }
+    .stat-number.yellow { color: var(--warning); }
+
+    .stat-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    /* ===== Log / JSON Output ===== */
+    .log-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .log-header span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .log {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 0.76rem;
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(30, 64, 175, 0.5);
+      padding: 10px 12px;
+      max-height: 350px;
+      overflow: auto;
+      white-space: pre;
+      color: #d1d5db;
+      line-height: 1.5;
+    }
+
+    /* ===== Hints Section Specific ===== */
+    .hint-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hint-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hint-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.12s ease-out;
+    }
+
+    .hint-option:hover {
+      border-color: rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .hint-option.selected {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .hint-option input {
+      display: none;
+    }
+
+    .hint-checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 2px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s ease-out;
+      font-size: 11px;
+      color: transparent;
+    }
+
+    .hint-option.selected .hint-checkbox {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: white;
+    }
+
+    .hint-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hint-label-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .hint-label-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .hint-result {
+      margin-top: 8px;
+      padding: 14px 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .hint-result-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .hint-result-content {
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .hint-code {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    /* ===== Info Box ===== */
+    .info-box {
+      padding: 14px 16px;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: var(--radius-lg);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .info-box strong {
+      color: var(--text-main);
+    }
+
+    .info-box code {
+      padding: 1px 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .footer-link {
+      color: var(--accent);
+      text-decoration: none;
+      opacity: 0.75;
+    }
+
+    .footer-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+
+    /* ===== Animations ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .check-item.animated {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .loading {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ===== Header ===== -->
+    <header>
+      <div class="title-block">
+        <h1>
+          <span class="logo">🔐</span>
+          WebAuthn Explorer
+        </h1>
+        <p class="subtitle">
+          Understand and test WebAuthn Level 3 features on your device. Learn what capabilities your browser supports for passkeys and passwordless authentication.
+        </p>
+      </div>
+      <div class="header-meta">
+        <span id="envPill" class="pill">
+          <span class="pill-dot"></span>
+          <span id="envText">Detecting…</span>
+        </span>
+        <span id="browserPill" class="browser-pill"></span>
+      </div>
+    </header>
+
+    <!-- ===== Navigation Tabs ===== -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-section="capabilities">
+        <span class="nav-tab-icon">📋</span>
+        <span>Client Capabilities</span>
+        <span class="nav-tab-badge">L3</span>
+      </button>
+      <button class="nav-tab" data-section="hints">
+        <span class="nav-tab-icon">🎯</span>
+        <span>Authenticator Hints</span>
+        <span class="nav-tab-badge">L3</span>
+      </button>
+    </nav>
+
+    <!-- ===== Main Content ===== -->
+    <main>
+      <!-- ========== Section: Client Capabilities ========== -->
+      <section id="section-capabilities" class="check-section active">
+        <div class="section-header">
+          <div class="section-title-block">
+            <h2>
+              <span>📋</span>
+              Client Capabilities
+            </h2>
+            <p>
+              Query <code>PublicKeyCredential.getClientCapabilities()</code> to discover what WebAuthn features this browser/device supports.
+            </p>
+          </div>
+          <div class="section-actions">
+            <button id="runCapabilitiesBtn" class="primary">
+              <span>▶</span>
+              <span>Run Check</span>
+            </button>
+            <button id="copyCapabilitiesBtn" class="secondary" disabled>
+              <span>⧉</span>
+              <span>Copy JSON</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <!-- Left: Dashboard -->
+          <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Dashboard</div>
+                  <div class="card-subtitle">Interpreted capability results</div>
+              </div>
+                <div id="capStatusBadge" class="badge warn">
+              <span class="badge-dot"></span>
+                  <span id="capStatusText">Not tested</span>
+            </div>
+          </div>
+
+              <!-- Summary Stats -->
+              <div id="capSummaryStats" class="summary-stats" style="display: none;">
+                <div class="stat-box">
+                  <span id="capStatSupported" class="stat-number green">0</span>
+                  <span class="stat-label">Supported</span>
+                </div>
+                <div class="stat-box">
+                  <span id="capStatUnsupported" class="stat-number red">0</span>
+                  <span class="stat-label">Unsupported</span>
+                </div>
+                <div class="stat-box">
+                  <span id="capStatUnknown" class="stat-number yellow">0</span>
+                  <span class="stat-label">Unknown</span>
+                </div>
+              </div>
+
+              <!-- Environment -->
+          <div>
+                <div class="section-label">Environment</div>
+                <div class="env-grid">
+                  <div class="env-item">
+                    <div class="env-label">PublicKeyCredential</div>
+                    <div class="env-value">
+                      <span id="pkcIndicator" class="dot-indicator maybe"></span>
+                  <span id="pkcText">Checking…</span>
+                </div>
+              </div>
+                  <div class="env-item">
+                    <div class="env-label">getClientCapabilities()</div>
+                    <div class="env-value">
+                      <span id="gccIndicator" class="dot-indicator maybe"></span>
+                  <span id="gccText">Checking…</span>
+                </div>
+              </div>
+                  <div class="env-item">
+                    <div class="env-label">Legacy UVPAA</div>
+                    <div class="env-value">
+                      <span id="uvpaaIndicator" class="dot-indicator maybe"></span>
+                      <span id="uvpaaText">Checking…</span>
+                </div>
+              </div>
+                  <div class="env-item">
+                    <div class="env-label">Conditional UI</div>
+                    <div class="env-value">
+                      <span id="conditionalIndicator" class="dot-indicator maybe"></span>
+                      <span id="conditionalText">Checking…</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+              <!-- Capabilities List -->
+          <div>
+                <div class="section-label">Detected Capabilities</div>
+                <div id="capabilitiesList" class="check-list">
+                  <div class="check-item" style="opacity: 0.5;">
+                    <div class="check-item-description">
+                      Click "Run Check" to detect capabilities on this device.
+                </div>
+              </div>
+                </div>
+              </div>
+                </div>
+              </div>
+
+          <!-- Right: Raw JSON -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Raw JSON Output</div>
+                  <div class="card-subtitle">Direct API response</div>
+                </div>
+              </div>
+              <div class="log-container">
+                <div class="log-header">
+                  <span id="capLogLabel">Result appears after running check</span>
+                  <span id="capLogMeta"></span>
+                </div>
+                <div id="capLog" class="log">{"info": "Click 'Run Check' to begin"}</div>
+              </div>
+                </div>
+              </div>
+        </div>
+      </section>
+
+      <!-- ========== Section: Authenticator Hints ========== -->
+      <section id="section-hints" class="check-section">
+        <div class="section-header">
+          <div class="section-title-block">
+            <h2>
+              <span>🎯</span>
+              Authenticator Hints
+            </h2>
+            <p>
+              Test the <code>hints</code> parameter (<code>PublicKeyCredentialHints</code>) which guides the browser on which type of authenticator to prefer during registration or authentication.
+            </p>
+            </div>
+          </div>
+
+        <div class="card-grid">
+          <!-- Left: Hint Selector & Explanation -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Hint Selection</div>
+                  <div class="card-subtitle">Choose hints to include in your WebAuthn request</div>
+        </div>
+              </div>
+
+              <div class="info-box">
+                <strong>What are Hints?</strong><br>
+                The <code>hints</code> property is an array of strings that suggest to the browser which authenticator type the relying party prefers. Hints are <strong>non-binding</strong> — the browser may ignore them based on user preferences or available authenticators.
+              </div>
+
+              <div class="hint-selector">
+                <div class="section-label">Available Hints (WebAuthn L3)</div>
+                <div class="hint-options" id="hintOptions">
+                  <label class="hint-option" data-hint="security-key">
+                    <input type="checkbox" name="hint" value="security-key">
+                    <span class="hint-checkbox">✓</span>
+                    <div class="hint-label">
+                      <span class="hint-label-name">🔑 security-key</span>
+                      <span class="hint-label-desc">Prefer roaming security keys (USB, NFC, BLE)</span>
+                    </div>
+                  </label>
+                  <label class="hint-option" data-hint="client-device">
+                    <input type="checkbox" name="hint" value="client-device">
+                    <span class="hint-checkbox">✓</span>
+                    <div class="hint-label">
+                      <span class="hint-label-name">💻 client-device</span>
+                      <span class="hint-label-desc">Prefer this device's built-in authenticator</span>
+                    </div>
+                  </label>
+                  <label class="hint-option" data-hint="hybrid">
+                    <input type="checkbox" name="hint" value="hybrid">
+                    <span class="hint-checkbox">✓</span>
+                    <div class="hint-label">
+                      <span class="hint-label-name">📱 hybrid</span>
+                      <span class="hint-label-desc">Prefer phone/tablet as authenticator (QR + BLE)</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="hint-result" id="hintResult">
+                <div class="hint-result-title">Generated Options Object</div>
+                <div class="hint-result-content">
+                  <p style="margin: 0 0 8px; color: var(--text-muted); font-size: 0.78rem;">
+                    This shows how the <code>hints</code> array would appear in your WebAuthn options:
+                  </p>
+                  <code id="hintCode" class="hint-code">hints: []</code>
+                </div>
+              </div>
+
+              <div class="section-actions" style="margin-top: 8px;">
+                <button id="testHintsCreateBtn" class="primary">
+                  <span>✨</span>
+                  <span>Test with Create</span>
+                </button>
+                <button id="testHintsGetBtn" class="secondary">
+                  <span>🔓</span>
+                  <span>Test with Get</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Explanation & Browser Support -->
+          <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+                  <div class="card-title">Understanding Hints</div>
+                  <div class="card-subtitle">How browsers interpret authenticator hints</div>
+              </div>
+              </div>
+
+              <div class="check-list">
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      security-key
+                    </span>
+                  </div>
+                  <div class="check-item-description">
+                    Suggests the relying party prefers a <strong>roaming authenticator</strong> like a USB security key (YubiKey, Titan Key), NFC token, or Bluetooth device. Use this when you want to encourage hardware-backed, device-bound credentials that can't be synced.
+            </div>
+          </div>
+
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      client-device
+                    </span>
+          </div>
+                  <div class="check-item-description">
+                    Suggests the relying party prefers the <strong>platform authenticator</strong> built into the current device — such as Touch ID, Face ID, Windows Hello, or Android biometrics. Great for seamless UX when you trust the device.
+                  </div>
+                </div>
+
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      hybrid
+                    </span>
+                  </div>
+                  <div class="check-item-description">
+                    Suggests the relying party prefers <strong>cross-device authentication</strong> using a phone or tablet as the authenticator (CTAP 2.2 hybrid transport). The user scans a QR code and authenticates on their phone via Bluetooth proximity.
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-box" style="margin-top: 12px;">
+                <strong>💡 Ordering Matters</strong><br>
+                Hints are processed in order. The first hint is the most preferred. Browsers may show UI reflecting your preference, but users always have the final choice.
+              </div>
+
+              <div id="hintTestResult" class="hint-result" style="display: none; margin-top: 12px;">
+                <div class="hint-result-title">Test Result</div>
+                <div class="hint-result-content" id="hintTestResultContent"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== Footer ===== -->
+    <footer>
+      <div>💡 Compare results across browsers/devices to understand passkey support differences.</div>
+      <div>
+        <a class="footer-link" href="https://www.w3.org/TR/webauthn-3/" target="_blank" rel="noreferrer">
+          WebAuthn Level 3 Spec ↗
+        </a>
+        &nbsp;·&nbsp;
+        <a class="footer-link" href="https://passkeys.dev" target="_blank" rel="noreferrer">
+          passkeys.dev ↗
+        </a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // =========================================================================
+    // Element References
+    // =========================================================================
+    const envPill = document.getElementById("envPill");
+    const envText = document.getElementById("envText");
+    const browserPill = document.getElementById("browserPill");
+
+    // Capabilities Section
+    const runCapabilitiesBtn = document.getElementById("runCapabilitiesBtn");
+    const copyCapabilitiesBtn = document.getElementById("copyCapabilitiesBtn");
+    const capStatusBadge = document.getElementById("capStatusBadge");
+    const capStatusText = document.getElementById("capStatusText");
+    const capSummaryStats = document.getElementById("capSummaryStats");
+    const capStatSupported = document.getElementById("capStatSupported");
+    const capStatUnsupported = document.getElementById("capStatUnsupported");
+    const capStatUnknown = document.getElementById("capStatUnknown");
+    const capabilitiesList = document.getElementById("capabilitiesList");
+    const capLog = document.getElementById("capLog");
+    const capLogLabel = document.getElementById("capLogLabel");
+    const capLogMeta = document.getElementById("capLogMeta");
+
+    const pkcIndicator = document.getElementById("pkcIndicator");
+    const pkcText = document.getElementById("pkcText");
+    const gccIndicator = document.getElementById("gccIndicator");
+    const gccText = document.getElementById("gccText");
+    const uvpaaIndicator = document.getElementById("uvpaaIndicator");
+    const uvpaaText = document.getElementById("uvpaaText");
+    const conditionalIndicator = document.getElementById("conditionalIndicator");
+    const conditionalText = document.getElementById("conditionalText");
+
+    // Hints Section
+    const hintOptions = document.getElementById("hintOptions");
+    const hintCode = document.getElementById("hintCode");
+    const testHintsCreateBtn = document.getElementById("testHintsCreateBtn");
+    const testHintsGetBtn = document.getElementById("testHintsGetBtn");
+    const hintTestResult = document.getElementById("hintTestResult");
+    const hintTestResultContent = document.getElementById("hintTestResultContent");
+
+    // =========================================================================
+    // Capability Definitions (WebAuthn L3)
+    // =========================================================================
+    const CAPABILITY_INFO = {
+      conditionalCreate: {
+        name: "Conditional Create",
+        description: "Supports conditional mediation for credential creation, allowing silent credential creation when appropriate."
+      },
+      conditionalGet: {
+        name: "Conditional Get (Autofill)",
+        description: "Supports passkey autofill in form fields for seamless authentication UX."
+      },
+      hybridTransport: {
+        name: "Hybrid Transport",
+        description: "Supports phone-as-authenticator via QR code + Bluetooth (CTAP 2.2 hybrid)."
+      },
+      passkeyPlatformAuthenticator: {
+        name: "Passkey Platform Authenticator",
+        description: "Supports synced passkeys via platform credential manager (iCloud, Google, etc.)."
+      },
+      userVerifyingPlatformAuthenticator: {
+        name: "User Verifying Platform Authenticator",
+        description: "Has built-in biometrics or PIN (Face ID, Touch ID, Windows Hello)."
+      },
+      relatedOrigins: {
+        name: "Related Origins",
+        description: "Supports using credentials across related origins via .well-known configuration."
+      },
+      signalAllAcceptedCredentials: {
+        name: "Signal All Accepted Credentials",
+        description: "Signal API: Report accepted credentials to keep authenticator in sync."
+      },
+      signalCurrentUserDetails: {
+        name: "Signal Current User Details",
+        description: "Signal API: Update user display name and metadata on credentials."
+      },
+      signalUnknownCredential: {
+        name: "Signal Unknown Credential",
+        description: "Signal API: Report unknown credentials for cleanup."
+      }
+    };
+
+    // =========================================================================
+    // Utility Functions
+    // =========================================================================
+    function setDotState(el, state) {
+      el.classList.remove("ok", "no", "maybe");
+      el.classList.add(state === "ok" ? "ok" : state === "no" ? "no" : "maybe");
+    }
+
+    function setBadgeState(badge, textEl, state, text) {
+      badge.classList.remove("ok", "warn", "error");
+      badge.classList.add(state);
+      textEl.textContent = text;
+    }
+
+    function detectBrowser() {
+      const ua = navigator.userAgent;
+      let browser = "Unknown", version = "", os = "Unknown";
+
+      if (ua.includes("Windows")) os = "Windows";
+      else if (ua.includes("Mac OS X")) os = "macOS";
+      else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+      else if (ua.includes("Android")) os = "Android";
+      else if (ua.includes("Linux")) os = "Linux";
+      else if (ua.includes("CrOS")) os = "ChromeOS";
+
+      if (ua.includes("Firefox/")) { browser = "Firefox"; version = ua.match(/Firefox\/(\d+)/)?.[1] || ""; }
+      else if (ua.includes("Edg/")) { browser = "Edge"; version = ua.match(/Edg\/(\d+)/)?.[1] || ""; }
+      else if (ua.includes("Chrome/")) { browser = "Chrome"; version = ua.match(/Chrome\/(\d+)/)?.[1] || ""; }
+      else if (ua.includes("Safari/") && !ua.includes("Chrome")) { browser = "Safari"; version = ua.match(/Version\/(\d+)/)?.[1] || ""; }
+
+      return { browser, version, os, ua };
+    }
+
+    // =========================================================================
+    // Navigation
+    // =========================================================================
+    document.querySelectorAll(".nav-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".check-section").forEach(s => s.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(`section-${tab.dataset.section}`).classList.add("active");
+      });
+    });
+
+    // =========================================================================
+    // Environment Detection
+    // =========================================================================
+    async function updateEnvironment() {
+      const { browser, version, os } = detectBrowser();
+      const hasPKC = typeof PublicKeyCredential !== "undefined";
+      const hasGCC = hasPKC && typeof PublicKeyCredential.getClientCapabilities === "function";
+
+      browserPill.textContent = `${browser} ${version} on ${os}`;
+
+      pkcText.textContent = hasPKC ? "Available" : "Not available";
+      setDotState(pkcIndicator, hasPKC ? "ok" : "no");
+
+      gccText.textContent = hasGCC ? "Available" : "Not implemented";
+      setDotState(gccIndicator, hasGCC ? "ok" : "no");
+
+      if (!hasPKC) {
+        envText.textContent = "No WebAuthn";
+        envPill.style.borderColor = "#ef4444";
+      } else if (!hasGCC) {
+        envText.textContent = "WebAuthn OK, L3 partial";
+        envPill.style.borderColor = "#eab308";
+      } else {
+        envText.textContent = "Full L3 Support";
+        envPill.style.borderColor = "#22c55e";
+      }
+
+      // UVPAA
+      if (hasPKC && typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === "function") {
+        try {
+          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+          uvpaaText.textContent = available ? "Available" : "Not available";
+            setDotState(uvpaaIndicator, available ? "ok" : "no");
+        } catch { uvpaaText.textContent = "Error"; setDotState(uvpaaIndicator, "maybe"); }
+      } else {
+        uvpaaText.textContent = "Not implemented";
+        setDotState(uvpaaIndicator, "no");
+      }
+
+      // Conditional UI
+      if (hasPKC && typeof PublicKeyCredential.isConditionalMediationAvailable === "function") {
+        try {
+          const available = await PublicKeyCredential.isConditionalMediationAvailable();
+          conditionalText.textContent = available ? "Available" : "Not available";
+          setDotState(conditionalIndicator, available ? "ok" : "no");
+        } catch { conditionalText.textContent = "Error"; setDotState(conditionalIndicator, "maybe"); }
+      } else {
+        conditionalText.textContent = "Not implemented";
+        setDotState(conditionalIndicator, "no");
+      }
+    }
+
+    // =========================================================================
+    // Capabilities Section
+    // =========================================================================
+    function renderCapabilities(caps) {
+      capabilitiesList.innerHTML = "";
+      let supported = 0, unsupported = 0, unknown = 0;
+
+      Object.keys(caps).forEach((key, i) => {
+        const value = caps[key];
+        const info = CAPABILITY_INFO[key] || { name: key, description: `Capability: ${key}` };
+
+        if (value === true) supported++;
+        else if (value === false) unsupported++;
+        else unknown++;
+
+        const item = document.createElement("div");
+        item.className = "check-item animated";
+        item.style.animationDelay = `${i * 0.04}s`;
+
+        const statusClass = value === true ? "supported" : value === false ? "not-supported" : "unknown";
+        const statusLabel = value === true ? "✓ Yes" : value === false ? "✗ No" : "? Unknown";
+        const dotClass = value === true ? "ok" : value === false ? "no" : "maybe";
+
+        item.innerHTML = `
+          <div class="check-item-header">
+            <span class="check-item-name">
+              <span class="dot-indicator ${dotClass}"></span>
+              ${info.name}
+            </span>
+            <span class="check-item-status ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="check-item-description">${info.description}</div>
+        `;
+        capabilitiesList.appendChild(item);
+      });
+
+      capSummaryStats.style.display = "flex";
+      capStatSupported.textContent = supported;
+      capStatUnsupported.textContent = unsupported;
+      capStatUnknown.textContent = unknown;
+
+      if (Object.keys(caps).length === 0) {
+        capabilitiesList.innerHTML = `<div class="check-item" style="opacity:0.6"><div class="check-item-description">Empty capabilities object returned.</div></div>`;
+      }
+    }
+
+    async function runCapabilitiesCheck() {
+      if (typeof PublicKeyCredential === "undefined") {
+        setBadgeState(capStatusBadge, capStatusText, "error", "No WebAuthn");
+        capLog.textContent = JSON.stringify({ error: "PublicKeyCredential not available" }, null, 2);
+        return;
+      }
+
+      if (typeof PublicKeyCredential.getClientCapabilities !== "function") {
+        setBadgeState(capStatusBadge, capStatusText, "error", "API missing");
+        capLog.textContent = JSON.stringify({
+          error: "getClientCapabilities() not implemented",
+          hint: "Try Chrome 128+, Safari 18+, or recent Edge"
+        }, null, 2);
+        return;
+      }
+
+      runCapabilitiesBtn.disabled = true;
+      runCapabilitiesBtn.innerHTML = "<span class='loading'>⏳</span><span>Running…</span>";
+      setBadgeState(capStatusBadge, capStatusText, "warn", "Detecting…");
+
+      try {
+        const caps = await PublicKeyCredential.getClientCapabilities();
+        capLog.textContent = JSON.stringify(caps, null, 2);
+        capLogLabel.textContent = "Capabilities result";
+        capLogMeta.textContent = new Date().toLocaleTimeString();
+
+        renderCapabilities(caps);
+
+        const total = Object.keys(caps).length;
+        const supported = Object.values(caps).filter(v => v === true).length;
+        setBadgeState(capStatusBadge, capStatusText, "ok", `${supported}/${total} supported`);
+        copyCapabilitiesBtn.disabled = false;
+      } catch (err) {
+        setBadgeState(capStatusBadge, capStatusText, "error", "Error");
+        capLog.textContent = JSON.stringify({ error: err.message, name: err.name }, null, 2);
+      } finally {
+        runCapabilitiesBtn.disabled = false;
+        runCapabilitiesBtn.innerHTML = "<span>▶</span><span>Run Check</span>";
+      }
+    }
+
+    async function copyCapabilitiesJSON() {
+      try {
+        await navigator.clipboard.writeText(capLog.textContent);
+        copyCapabilitiesBtn.innerHTML = "<span>✓</span><span>Copied!</span>";
+        setTimeout(() => { copyCapabilitiesBtn.innerHTML = "<span>⧉</span><span>Copy JSON</span>"; }, 1200);
+      } catch {
+        copyCapabilitiesBtn.innerHTML = "<span>✗</span><span>Failed</span>";
+        setTimeout(() => { copyCapabilitiesBtn.innerHTML = "<span>⧉</span><span>Copy JSON</span>"; }, 1200);
+      }
+    }
+
+    runCapabilitiesBtn.addEventListener("click", runCapabilitiesCheck);
+    copyCapabilitiesBtn.addEventListener("click", copyCapabilitiesJSON);
+
+    // =========================================================================
+    // Hints Section
+    // =========================================================================
+    let selectedHints = [];
+
+    hintOptions.querySelectorAll(".hint-option").forEach(option => {
+      option.addEventListener("click", () => {
+        const hint = option.dataset.hint;
+        const input = option.querySelector("input");
+
+        if (selectedHints.includes(hint)) {
+          selectedHints = selectedHints.filter(h => h !== hint);
+          option.classList.remove("selected");
+          input.checked = false;
+        } else {
+          selectedHints.push(hint);
+          option.classList.add("selected");
+          input.checked = true;
+        }
+
+        updateHintCode();
+      });
+    });
+
+    function updateHintCode() {
+      if (selectedHints.length === 0) {
+        hintCode.textContent = "hints: []";
+        } else {
+        hintCode.textContent = `hints: [${selectedHints.map(h => `"${h}"`).join(", ")}]`;
+      }
+    }
+
+    function showHintTestResult(success, message, details = null) {
+      hintTestResult.style.display = "block";
+      hintTestResultContent.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span class="dot-indicator ${success ? 'ok' : 'no'}"></span>
+          <strong style="color: ${success ? 'var(--success)' : 'var(--danger)'}">
+            ${success ? 'Success' : 'Error / Cancelled'}
+          </strong>
+        </div>
+        <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">${message}</p>
+        ${details ? `<pre style="margin: 8px 0 0; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.75rem; overflow: auto;">${details}</pre>` : ''}
+      `;
+    }
+
+    async function testHintsWithCreate() {
+      if (typeof PublicKeyCredential === "undefined") {
+        showHintTestResult(false, "WebAuthn is not available on this platform.");
+        return;
+      }
+
+      testHintsCreateBtn.disabled = true;
+      testHintsCreateBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
+
+      // Generate random values for the test
+      const challenge = new Uint8Array(32);
+      crypto.getRandomValues(challenge);
+      const userId = new Uint8Array(16);
+      crypto.getRandomValues(userId);
+
+      const createOptions = {
+        publicKey: {
+          challenge: challenge,
+          rp: {
+            name: "WebAuthn Explorer Test",
+            id: window.location.hostname
+          },
+          user: {
+            id: userId,
+            name: "test@example.com",
+            displayName: "Test User"
+          },
+          pubKeyCredParams: [
+            { type: "public-key", alg: -7 },   // ES256
+            { type: "public-key", alg: -257 }  // RS256
+          ],
+          authenticatorSelection: {
+            userVerification: "preferred"
+          },
+          timeout: 60000,
+          hints: selectedHints.length > 0 ? selectedHints : undefined
+        }
+      };
+
+      try {
+        const credential = await navigator.credentials.create(createOptions);
+        showHintTestResult(
+          true,
+          `Credential created successfully with hints: [${selectedHints.join(", ") || "none"}]`,
+          `Credential ID: ${btoa(String.fromCharCode(...new Uint8Array(credential.rawId))).slice(0, 40)}...`
+        );
+      } catch (err) {
+        showHintTestResult(
+          false,
+          `${err.name}: ${err.message}`,
+          `Hints used: [${selectedHints.join(", ") || "none"}]`
+        );
+      } finally {
+        testHintsCreateBtn.disabled = false;
+        testHintsCreateBtn.innerHTML = "<span>✨</span><span>Test with Create</span>";
+      }
+    }
+
+    async function testHintsWithGet() {
+      if (typeof PublicKeyCredential === "undefined") {
+        showHintTestResult(false, "WebAuthn is not available on this platform.");
+        return;
+      }
+
+      testHintsGetBtn.disabled = true;
+      testHintsGetBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
+
+      const challenge = new Uint8Array(32);
+      crypto.getRandomValues(challenge);
+
+      const getOptions = {
+        publicKey: {
+          challenge: challenge,
+          rpId: window.location.hostname,
+          userVerification: "preferred",
+          timeout: 60000,
+          hints: selectedHints.length > 0 ? selectedHints : undefined
+        }
+      };
+
+      try {
+        const assertion = await navigator.credentials.get(getOptions);
+        showHintTestResult(
+          true,
+          `Authentication successful with hints: [${selectedHints.join(", ") || "none"}]`,
+          `Credential ID: ${btoa(String.fromCharCode(...new Uint8Array(assertion.rawId))).slice(0, 40)}...`
+        );
+      } catch (err) {
+        showHintTestResult(
+          false,
+          `${err.name}: ${err.message}`,
+          `Hints used: [${selectedHints.join(", ") || "none"}]\n\nNote: "Get" requires an existing credential for this origin.`
+        );
+      } finally {
+        testHintsGetBtn.disabled = false;
+        testHintsGetBtn.innerHTML = "<span>🔓</span><span>Test with Get</span>";
+      }
+    }
+
+    testHintsCreateBtn.addEventListener("click", testHintsWithCreate);
+    testHintsGetBtn.addEventListener("click", testHintsWithGet);
+
+    // =========================================================================
+    // Initialize
+    // =========================================================================
+    updateEnvironment();
+  </script>
+</body>
+</html>
