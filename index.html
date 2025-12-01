@@ -439,6 +439,128 @@
       line-height: 1.5;
     }
 
+    .check-item-summary {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .check-item-details {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.2);
+    }
+
+    .check-item.expanded .check-item-details {
+      display: flex;
+    }
+
+    .check-item-toggle {
+      font-size: 0.72rem;
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 8px;
+      padding: 4px 8px;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 6px;
+      transition: all 0.15s ease-out;
+    }
+
+    .check-item-toggle:hover {
+      background: rgba(59, 130, 246, 0.2);
+    }
+
+    .check-item-toggle span:first-child {
+      font-size: 0.6rem;
+      transition: transform 0.2s ease-out;
+    }
+
+    .check-item.expanded .check-item-toggle span:first-child {
+      transform: rotate(90deg);
+    }
+
+    .check-item.expanded .check-item-toggle .toggle-text {
+      display: none;
+    }
+
+    .check-item.expanded .check-item-toggle .toggle-text-collapse {
+      display: inline;
+    }
+
+    .check-item-toggle .toggle-text-collapse {
+      display: none;
+    }
+
+    .detail-point {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .detail-icon {
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      width: 20px;
+      text-align: center;
+    }
+
+    .detail-content {
+      flex: 1;
+    }
+
+    .detail-title {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    .detail-explanation {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .use-case-box {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.15);
+      border-radius: 10px;
+    }
+
+    .use-case-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .use-case-text {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .code-example {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      color: #a5b4fc;
+      overflow-x: auto;
+    }
+
     .dot-indicator {
       width: 8px;
       height: 8px;
@@ -1083,44 +1205,224 @@
     const hintTestResultContent = document.getElementById("hintTestResultContent");
 
     // =========================================================================
-    // Capability Definitions (WebAuthn L3)
+    // Capability Definitions (WebAuthn L3) - Rich Educational Content
     // =========================================================================
     const CAPABILITY_INFO = {
       conditionalCreate: {
         name: "Conditional Create",
-        description: "Supports conditional mediation for credential creation, allowing silent credential creation when appropriate."
+        icon: "✨",
+        summary: "Allows websites to prepare passkey creation without immediately triggering browser UI, waiting for a real user gesture.",
+        details: [
+          {
+            icon: "✔",
+            title: "Check whether the device can create passkeys",
+            explanation: "…without triggering a popup or system UI."
+          },
+          {
+            icon: "✔",
+            title: "Prepare all the WebAuthn parameters",
+            explanation: "…so everything is ready behind the scenes."
+          },
+          {
+            icon: "✔",
+            title: "Wait for a real user gesture",
+            explanation: "…like clicking \"Create account\" or \"Save passkey\"."
+          }
+        ],
+        useCase: "Perfect for onboarding flows where you want to check passkey availability first, then prompt the user at the right moment — not immediately on page load.",
+        codeExample: "mediation: \"conditional\""
       },
       conditionalGet: {
         name: "Conditional Get (Autofill)",
-        description: "Supports passkey autofill in form fields for seamless authentication UX."
+        icon: "🔑",
+        summary: "Enables passkeys to appear in the browser's autofill suggestions, just like saved passwords.",
+        details: [
+          {
+            icon: "✔",
+            title: "Passkeys appear in autofill dropdown",
+            explanation: "…alongside saved passwords when user focuses a login field."
+          },
+          {
+            icon: "✔",
+            title: "No modal popup required",
+            explanation: "…the authentication flow feels native and non-intrusive."
+          },
+          {
+            icon: "✔",
+            title: "User selects which passkey to use",
+            explanation: "…from a familiar UI they already know from password autofill."
+          }
+        ],
+        useCase: "The key to seamless passkey adoption. Users can authenticate with a single tap from the autofill menu, making passkeys feel as easy as saved passwords.",
+        codeExample: "mediation: \"conditional\", autocomplete: \"username webauthn\""
       },
       hybridTransport: {
         name: "Hybrid Transport",
-        description: "Supports phone-as-authenticator via QR code + Bluetooth (CTAP 2.2 hybrid)."
+        icon: "📱",
+        summary: "Use your phone or tablet as an authenticator for another device via QR code and Bluetooth.",
+        details: [
+          {
+            icon: "✔",
+            title: "Scan a QR code on the desktop",
+            explanation: "…to initiate cross-device authentication."
+          },
+          {
+            icon: "✔",
+            title: "Authenticate on your phone",
+            explanation: "…using Face ID, Touch ID, or fingerprint."
+          },
+          {
+            icon: "✔",
+            title: "Bluetooth verifies proximity",
+            explanation: "…ensuring the phone is physically nearby for security."
+          }
+        ],
+        useCase: "Essential for users on shared/public computers or when the current device lacks biometrics. Your phone becomes a portable authenticator.",
+        codeExample: "transports: [\"hybrid\"]"
       },
       passkeyPlatformAuthenticator: {
         name: "Passkey Platform Authenticator",
-        description: "Supports synced passkeys via platform credential manager (iCloud, Google, etc.)."
+        icon: "☁️",
+        summary: "Supports synced passkeys that automatically sync across your devices via cloud (iCloud Keychain, Google Password Manager, etc.).",
+        details: [
+          {
+            icon: "✔",
+            title: "Create a passkey on one device",
+            explanation: "…and it automatically syncs to your other devices."
+          },
+          {
+            icon: "✔",
+            title: "Lost device? No problem",
+            explanation: "…your passkeys are backed up and recoverable."
+          },
+          {
+            icon: "✔",
+            title: "Works across the ecosystem",
+            explanation: "…iPhone ↔ iPad ↔ Mac, or Android ↔ Chrome on any device."
+          }
+        ],
+        useCase: "The modern passkey experience. Users don't lose access when they get a new phone — their passkeys follow them automatically.",
+        codeExample: "residentKey: \"required\", authenticatorAttachment: \"platform\""
       },
       userVerifyingPlatformAuthenticator: {
         name: "User Verifying Platform Authenticator",
-        description: "Has built-in biometrics or PIN (Face ID, Touch ID, Windows Hello)."
+        icon: "👆",
+        summary: "The device has built-in biometrics or PIN for user verification (Face ID, Touch ID, Windows Hello, fingerprint).",
+        details: [
+          {
+            icon: "✔",
+            title: "Biometric authentication available",
+            explanation: "…like Face ID, Touch ID, or fingerprint sensor."
+          },
+          {
+            icon: "✔",
+            title: "Fallback to device PIN/password",
+            explanation: "…when biometrics aren't available or fail."
+          },
+          {
+            icon: "✔",
+            title: "No external hardware required",
+            explanation: "…authentication happens entirely on this device."
+          }
+        ],
+        useCase: "The foundation for passkeys on modern devices. This is the legacy API that tells you if the device can do passwordless auth locally.",
+        codeExample: "PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()"
       },
       relatedOrigins: {
         name: "Related Origins",
-        description: "Supports using credentials across related origins via .well-known configuration."
+        icon: "🔗",
+        summary: "Use passkeys across related domains (e.g., example.com and app.example.com) without re-registration.",
+        details: [
+          {
+            icon: "✔",
+            title: "Share credentials across subdomains",
+            explanation: "…and even across related domain names."
+          },
+          {
+            icon: "✔",
+            title: "Configure via .well-known file",
+            explanation: "…with a JSON file listing allowed origins."
+          },
+          {
+            icon: "✔",
+            title: "Seamless multi-domain experience",
+            explanation: "…users authenticate once, use everywhere."
+          }
+        ],
+        useCase: "Perfect for enterprises with multiple domains or apps that span web and native platforms but want unified authentication.",
+        codeExample: "/.well-known/webauthn → { \"origins\": [\"https://app.example.com\"] }"
       },
       signalAllAcceptedCredentials: {
         name: "Signal All Accepted Credentials",
-        description: "Signal API: Report accepted credentials to keep authenticator in sync."
+        icon: "📋",
+        summary: "Tell the authenticator which credentials your server actually accepts, so it can clean up stale entries.",
+        details: [
+          {
+            icon: "✔",
+            title: "Server sends list of valid credential IDs",
+            explanation: "…so the authenticator knows what's still active."
+          },
+          {
+            icon: "✔",
+            title: "Authenticator can hide/remove old credentials",
+            explanation: "…keeping the user's credential list clean."
+          },
+          {
+            icon: "✔",
+            title: "Prevents confusion from stale passkeys",
+            explanation: "…users only see credentials that will actually work."
+          }
+        ],
+        useCase: "Crucial for good UX. When users delete their account or you rotate credentials server-side, this lets their device know.",
+        codeExample: "PublicKeyCredential.signalAllAcceptedCredentials({...})"
       },
       signalCurrentUserDetails: {
         name: "Signal Current User Details",
-        description: "Signal API: Update user display name and metadata on credentials."
+        icon: "👤",
+        summary: "Update the display name and user info stored with a passkey without re-registering.",
+        details: [
+          {
+            icon: "✔",
+            title: "User changes their display name",
+            explanation: "…update it on the passkey without re-enrollment."
+          },
+          {
+            icon: "✔",
+            title: "Fix typos or outdated info",
+            explanation: "…the passkey's metadata stays current."
+          },
+          {
+            icon: "✔",
+            title: "Better credential picker UX",
+            explanation: "…users see accurate, recognizable names."
+          }
+        ],
+        useCase: "When a user updates their profile name or email, you can push that change to their stored passkey so it displays correctly.",
+        codeExample: "PublicKeyCredential.signalCurrentUserDetails({...})"
       },
       signalUnknownCredential: {
         name: "Signal Unknown Credential",
-        description: "Signal API: Report unknown credentials for cleanup."
+        icon: "❓",
+        summary: "Tell the authenticator when a credential it offers is unknown to your server, enabling cleanup.",
+        details: [
+          {
+            icon: "✔",
+            title: "User tries a deleted passkey",
+            explanation: "…your server doesn't recognize it."
+          },
+          {
+            icon: "✔",
+            title: "Signal back that it's unknown",
+            explanation: "…the authenticator can mark or remove it."
+          },
+          {
+            icon: "✔",
+            title: "Self-healing credential lists",
+            explanation: "…stale passkeys automatically get cleaned up."
+          }
+        ],
+        useCase: "Handles the case where a user has a passkey their device remembers, but your server has deleted. Prevents repeated failed attempts.",
+        codeExample: "PublicKeyCredential.signalUnknownCredential({...})"
       }
     };
 
@@ -1230,7 +1532,14 @@
 
       Object.keys(caps).forEach((key, i) => {
         const value = caps[key];
-        const info = CAPABILITY_INFO[key] || { name: key, description: `Capability: ${key}` };
+        const info = CAPABILITY_INFO[key] || { 
+          name: key, 
+          icon: "📌",
+          summary: `Capability: ${key}`,
+          details: [],
+          useCase: "",
+          codeExample: ""
+        };
 
         if (value === true) supported++;
         else if (value === false) unsupported++;
@@ -1241,18 +1550,61 @@
         item.style.animationDelay = `${i * 0.04}s`;
 
         const statusClass = value === true ? "supported" : value === false ? "not-supported" : "unknown";
-        const statusLabel = value === true ? "✓ Yes" : value === false ? "✗ No" : "? Unknown";
+        const statusLabel = value === true ? "✓ Supported" : value === false ? "✗ Not Supported" : "? Unknown";
         const dotClass = value === true ? "ok" : value === false ? "no" : "maybe";
+
+        // Build details HTML
+        let detailsHTML = "";
+        if (info.details && info.details.length > 0) {
+          detailsHTML = info.details.map(d => `
+            <div class="detail-point">
+              <span class="detail-icon">${d.icon}</span>
+              <div class="detail-content">
+                <div class="detail-title">${d.title}</div>
+                <div class="detail-explanation">${d.explanation}</div>
+              </div>
+            </div>
+          `).join("");
+        }
+
+        // Build use case HTML
+        let useCaseHTML = "";
+        if (info.useCase) {
+          useCaseHTML = `
+            <div class="use-case-box">
+              <div class="use-case-title">💡 When to use</div>
+              <div class="use-case-text">${info.useCase}</div>
+            </div>
+          `;
+        }
+
+        // Build code example HTML
+        let codeHTML = "";
+        if (info.codeExample) {
+          codeHTML = `<div class="code-example">${info.codeExample}</div>`;
+        }
 
         item.innerHTML = `
           <div class="check-item-header">
             <span class="check-item-name">
               <span class="dot-indicator ${dotClass}"></span>
-              ${info.name}
+              <span>${info.icon || ""} ${info.name}</span>
             </span>
             <span class="check-item-status ${statusClass}">${statusLabel}</span>
           </div>
-          <div class="check-item-description">${info.description}</div>
+          <div class="check-item-summary">${info.summary}</div>
+          ${(info.details && info.details.length > 0) ? `
+            <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+              <span>▶</span>
+              <span class="toggle-text">Learn more</span>
+              <span class="toggle-text-collapse">Show less</span>
+            </div>
+            <div class="check-item-details">
+              ${detailsHTML}
+              ${useCaseHTML}
+              ${codeHTML}
+            </div>
+          ` : ''}
         `;
         capabilitiesList.appendChild(item);
       });
