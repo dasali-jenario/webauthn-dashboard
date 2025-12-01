@@ -75,6 +75,13 @@ const conditionalGetStatus = document.getElementById("conditionalGetStatus");
 // Store abort controller for conditional get demo
 let conditionalAbortController = null;
 
+// Backup State Section
+const testBackupStateBtn = document.getElementById("testBackupStateBtn");
+const testBackupAuthBtn = document.getElementById("testBackupAuthBtn");
+const backupSupportBadge = document.getElementById("backupSupportBadge");
+const backupSupportStatus = document.getElementById("backupSupportStatus");
+const backupTestResults = document.getElementById("backupTestResults");
+
 // ==========================================================================
 // Capability Definitions (WebAuthn L3) - Rich Educational Content
 // ==========================================================================
@@ -1647,6 +1654,642 @@ function initConditional() {
 }
 
 // ==========================================================================
+// Backup State Testing
+// ==========================================================================
+function setBackupBadgeState(state, text) {
+  backupSupportBadge.classList.remove("ok", "warn", "error");
+  backupSupportBadge.classList.add(state);
+  backupSupportStatus.textContent = text;
+}
+
+function parseAuthenticatorFlags(authData) {
+  // authData is an ArrayBuffer
+  // Flags byte is at index 32 (after 32 bytes of RP ID hash)
+  const flags = new Uint8Array(authData)[32];
+  
+  return {
+    userPresent: (flags & 0x01) !== 0,       // Bit 0
+    userVerified: (flags & 0x04) !== 0,      // Bit 2
+    backupEligible: (flags & 0x10) !== 0,    // Bit 4 (BE)
+    backupState: (flags & 0x08) !== 0,       // Bit 3 (BS)
+    attestedCredentialData: (flags & 0x40) !== 0, // Bit 6
+    extensionData: (flags & 0x80) !== 0,     // Bit 7
+    rawFlags: flags
+  };
+}
+
+function getBackupStateDescription(be, bs) {
+  if (!be && !bs) {
+    return {
+      type: "device-bound",
+      icon: "🔑",
+      title: "Device-Bound Credential",
+      description: "This passkey is locked to this device and cannot be synced. It provides the highest security assurance but will be lost if the device is lost.",
+      security: "high"
+    };
+  }
+  if (be && bs) {
+    return {
+      type: "synced",
+      icon: "☁️",
+      title: "Synced Passkey",
+      description: "This passkey is backed up and available on your other devices. You can recover it if you lose this device.",
+      security: "standard"
+    };
+  }
+  if (be && !bs) {
+    return {
+      type: "pending-sync",
+      icon: "⏳",
+      title: "Sync Pending",
+      description: "This passkey can be synced but hasn't been backed up yet. This might happen if the device is offline or sync is temporarily disabled.",
+      security: "warning"
+    };
+  }
+  // be=0, bs=1 - Invalid state
+  return {
+    type: "invalid",
+    icon: "⚠️",
+    title: "Invalid State",
+    description: "This is an unexpected flag combination. A credential cannot be backed up if it's not backup-eligible.",
+    security: "error"
+  };
+}
+
+function renderBackupResults(flags, credentialType) {
+  backupTestResults.innerHTML = "";
+  
+  const description = getBackupStateDescription(flags.backupEligible, flags.backupState);
+  
+  // Main result item
+  const mainItem = document.createElement("div");
+  mainItem.className = "check-item animated";
+  mainItem.innerHTML = `
+    <div class="check-item-header">
+      <span class="check-item-name">
+        <span class="dot-indicator ${description.security === 'high' ? 'ok' : description.security === 'standard' ? 'ok' : description.security === 'warning' ? 'maybe' : 'no'}"></span>
+        <span>${description.icon} ${description.title}</span>
+      </span>
+    </div>
+    <div class="check-item-summary">${description.description}</div>
+  `;
+  backupTestResults.appendChild(mainItem);
+
+  // Flag details grid
+  const gridContainer = document.createElement("div");
+  gridContainer.className = "backup-result-grid";
+  
+  // BE Flag
+  const beItem = document.createElement("div");
+  beItem.className = "backup-result-item";
+  beItem.innerHTML = `
+    <div class="backup-result-label">Backup Eligible (BE)</div>
+    <div class="backup-result-value ${flags.backupEligible ? 'eligible' : 'device-bound'}">
+      <span class="dot-indicator ${flags.backupEligible ? 'ok' : 'maybe'}"></span>
+      ${flags.backupEligible ? 'Yes — Syncable' : 'No — Device-Bound'}
+    </div>
+  `;
+  gridContainer.appendChild(beItem);
+  
+  // BS Flag
+  const bsItem = document.createElement("div");
+  bsItem.className = "backup-result-item";
+  bsItem.innerHTML = `
+    <div class="backup-result-label">Backup State (BS)</div>
+    <div class="backup-result-value ${flags.backupState ? 'backed-up' : 'not-backed-up'}">
+      <span class="dot-indicator ${flags.backupState ? 'ok' : flags.backupEligible ? 'maybe' : 'no'}"></span>
+      ${flags.backupState ? 'Yes — Backed Up' : 'No — Not Backed Up'}
+    </div>
+  `;
+  gridContainer.appendChild(bsItem);
+  
+  // UV Flag
+  const uvItem = document.createElement("div");
+  uvItem.className = "backup-result-item";
+  uvItem.innerHTML = `
+    <div class="backup-result-label">User Verified (UV)</div>
+    <div class="backup-result-value" style="color: ${flags.userVerified ? 'var(--success)' : 'var(--text-muted)'}">
+      <span class="dot-indicator ${flags.userVerified ? 'ok' : 'no'}"></span>
+      ${flags.userVerified ? 'Yes — Biometric/PIN Used' : 'No'}
+    </div>
+  `;
+  gridContainer.appendChild(uvItem);
+  
+  // UP Flag
+  const upItem = document.createElement("div");
+  upItem.className = "backup-result-item";
+  upItem.innerHTML = `
+    <div class="backup-result-label">User Present (UP)</div>
+    <div class="backup-result-value" style="color: ${flags.userPresent ? 'var(--success)' : 'var(--text-muted)'}">
+      <span class="dot-indicator ${flags.userPresent ? 'ok' : 'no'}"></span>
+      ${flags.userPresent ? 'Yes — User Interacted' : 'No'}
+    </div>
+  `;
+  gridContainer.appendChild(upItem);
+  
+  backupTestResults.appendChild(gridContainer);
+  
+  // Raw flags
+  const rawItem = document.createElement("div");
+  rawItem.className = "check-item animated";
+  rawItem.style.animationDelay = "0.15s";
+  rawItem.innerHTML = `
+    <div class="check-item-header">
+      <span class="check-item-name">
+        <span>📋</span>
+        <span>Raw Flags Byte</span>
+      </span>
+    </div>
+    <div class="code-example" style="margin-top: 8px;">
+Flags byte: 0x${flags.rawFlags.toString(16).padStart(2, '0').toUpperCase()} (binary: ${flags.rawFlags.toString(2).padStart(8, '0')})
+
+Bit breakdown:
+  Bit 0 (UP - User Present): ${flags.userPresent ? '1' : '0'}
+  Bit 2 (UV - User Verified): ${flags.userVerified ? '1' : '0'}
+  Bit 3 (BS - Backup State): ${flags.backupState ? '1' : '0'}
+  Bit 4 (BE - Backup Eligible): ${flags.backupEligible ? '1' : '0'}
+  Bit 6 (AT - Attested Credential): ${flags.attestedCredentialData ? '1' : '0'}
+  Bit 7 (ED - Extension Data): ${flags.extensionData ? '1' : '0'}
+    </div>
+  `;
+  backupTestResults.appendChild(rawItem);
+  
+  // Security recommendation
+  const recommendationItem = document.createElement("div");
+  recommendationItem.className = "check-item animated";
+  recommendationItem.style.animationDelay = "0.2s";
+  
+  let recommendationContent = "";
+  if (description.type === "device-bound") {
+    recommendationContent = `
+      <div class="use-case-box">
+        <div class="use-case-title">🛡️ Security Recommendation</div>
+        <div class="use-case-text">
+          This credential provides the highest security assurance. It's ideal for:
+          <br>• Banking and financial applications
+          <br>• Enterprise admin access
+          <br>• Regulatory compliance (NIST, PCI-DSS)
+          <br><br>
+          <strong>Caution:</strong> Register a backup credential — this one can't be recovered if the device is lost.
+        </div>
+      </div>
+    `;
+  } else if (description.type === "synced") {
+    recommendationContent = `
+      <div class="use-case-box">
+        <div class="use-case-title">✅ Good for Most Applications</div>
+        <div class="use-case-text">
+          This synced passkey offers excellent balance of security and convenience:
+          <br>• User can recover on new devices
+          <br>• End-to-end encrypted in cloud
+          <br>• Great for consumer apps
+          <br><br>
+          For high-value operations, you may want to consider additional verification (step-up auth).
+        </div>
+      </div>
+    `;
+  } else if (description.type === "pending-sync") {
+    recommendationContent = `
+      <div class="use-case-box" style="border-color: rgba(234, 179, 8, 0.3); background: rgba(234, 179, 8, 0.08);">
+        <div class="use-case-title" style="color: var(--warning);">⚠️ Sync Not Complete</div>
+        <div class="use-case-text">
+          This passkey is eligible for backup but hasn't synced yet. Consider:
+          <br>• Prompting user to check their sync settings
+          <br>• Suggesting they add a backup authentication method
+          <br>• Re-checking BS flag on next login
+        </div>
+      </div>
+    `;
+  }
+  
+  if (recommendationContent) {
+    recommendationItem.innerHTML = recommendationContent;
+    backupTestResults.appendChild(recommendationItem);
+  }
+}
+
+async function testBackupState() {
+  if (typeof PublicKeyCredential === "undefined") {
+    setBackupBadgeState("error", "No WebAuthn");
+    backupTestResults.innerHTML = `
+      <div class="check-item">
+        <div class="check-item-description" style="color: var(--danger);">
+          WebAuthn is not available on this platform.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  testBackupStateBtn.disabled = true;
+  testBackupStateBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
+  setBackupBadgeState("warn", "Testing…");
+
+  // Generate random values
+  const challenge = new Uint8Array(32);
+  crypto.getRandomValues(challenge);
+  const userId = new Uint8Array(16);
+  crypto.getRandomValues(userId);
+
+  const createOptions = {
+    publicKey: {
+      challenge: challenge,
+      rp: {
+        name: "WebAuthn Explorer - Backup Test",
+        id: window.location.hostname
+      },
+      user: {
+        id: userId,
+        name: "backup-test@example.com",
+        displayName: "Backup Test User"
+      },
+      pubKeyCredParams: [
+        { type: "public-key", alg: -7 },   // ES256
+        { type: "public-key", alg: -257 }  // RS256
+      ],
+      authenticatorSelection: {
+        residentKey: "preferred",
+        userVerification: "preferred"
+      },
+      timeout: 120000
+    }
+  };
+
+  try {
+    const credential = await navigator.credentials.create(createOptions);
+    
+    // Get authenticator data from the attestation response
+    const authData = credential.response.getAuthenticatorData 
+      ? credential.response.getAuthenticatorData() 
+      : credential.response.authenticatorData;
+    
+    if (!authData) {
+      throw new Error("Could not access authenticator data");
+    }
+    
+    const flags = parseAuthenticatorFlags(authData);
+    
+    // Set badge based on backup state
+    if (flags.backupEligible && flags.backupState) {
+      setBackupBadgeState("ok", "Synced Passkey");
+    } else if (flags.backupEligible && !flags.backupState) {
+      setBackupBadgeState("warn", "Sync Pending");
+    } else {
+      setBackupBadgeState("ok", "Device-Bound");
+    }
+    
+    renderBackupResults(flags, flags.backupEligible ? "synced" : "device-bound");
+
+  } catch (err) {
+    console.error("Backup state test error:", err);
+    
+    if (err.name === "NotAllowedError") {
+      setBackupBadgeState("warn", "Cancelled");
+      backupTestResults.innerHTML = `
+        <div class="check-item">
+          <div class="check-item-description">
+            <strong>Test cancelled.</strong> You need to complete the WebAuthn prompt to check backup state.
+          </div>
+        </div>
+      `;
+    } else {
+      setBackupBadgeState("error", "Error");
+      backupTestResults.innerHTML = `
+        <div class="check-item">
+          <div class="check-item-description" style="color: var(--danger);">
+            <strong>${err.name}:</strong> ${err.message}
+          </div>
+        </div>
+      `;
+    }
+  } finally {
+    testBackupStateBtn.disabled = false;
+    testBackupStateBtn.innerHTML = "<span>✨</span><span>Create & Check</span>";
+  }
+}
+
+async function testBackupStateAuth() {
+  if (typeof PublicKeyCredential === "undefined") {
+    setBackupBadgeState("error", "No WebAuthn");
+    backupTestResults.innerHTML = `
+      <div class="check-item">
+        <div class="check-item-description" style="color: var(--danger);">
+          WebAuthn is not available on this platform.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  testBackupAuthBtn.disabled = true;
+  testBackupAuthBtn.innerHTML = "<span class='loading'>⏳</span><span>Authenticating…</span>";
+  setBackupBadgeState("warn", "Authenticating…");
+
+  // Generate random challenge
+  const challenge = new Uint8Array(32);
+  crypto.getRandomValues(challenge);
+
+  const getOptions = {
+    publicKey: {
+      challenge: challenge,
+      rpId: window.location.hostname,
+      userVerification: "preferred",
+      timeout: 120000
+      // No allowCredentials - let user pick any discoverable credential
+    }
+  };
+
+  try {
+    const assertion = await navigator.credentials.get(getOptions);
+    
+    // Get authenticator data from the assertion response
+    const authData = assertion.response.authenticatorData;
+    
+    if (!authData) {
+      throw new Error("Could not access authenticator data");
+    }
+    
+    const flags = parseAuthenticatorFlags(authData);
+    
+    // Set badge based on backup state
+    if (flags.backupEligible && flags.backupState) {
+      setBackupBadgeState("ok", "Synced Passkey");
+    } else if (flags.backupEligible && !flags.backupState) {
+      setBackupBadgeState("warn", "Sync Pending");
+    } else {
+      setBackupBadgeState("ok", "Device-Bound");
+    }
+    
+    renderBackupAuthResults(flags, assertion);
+
+  } catch (err) {
+    console.error("Backup auth test error:", err);
+    
+    if (err.name === "NotAllowedError") {
+      setBackupBadgeState("warn", "Cancelled");
+      backupTestResults.innerHTML = `
+        <div class="check-item">
+          <div class="check-item-description">
+            <strong>Authentication cancelled.</strong> You need to complete the WebAuthn prompt to check the passkey's backup state.
+          </div>
+        </div>
+      `;
+    } else {
+      setBackupBadgeState("error", "Error");
+      backupTestResults.innerHTML = `
+        <div class="check-item">
+          <div class="check-item-description" style="color: var(--danger);">
+            <strong>${err.name}:</strong> ${err.message}
+          </div>
+        </div>
+      `;
+    }
+  } finally {
+    testBackupAuthBtn.disabled = false;
+    testBackupAuthBtn.innerHTML = "<span>🔓</span><span>Authenticate & Check</span>";
+  }
+}
+
+function renderBackupAuthResults(flags, assertion) {
+  backupTestResults.innerHTML = "";
+  
+  const description = getBackupStateDescription(flags.backupEligible, flags.backupState);
+  
+  // Extract user identifier from userHandle
+  let userIdentifier = null;
+  let userIdHex = null;
+  if (assertion.response.userHandle && assertion.response.userHandle.byteLength > 0) {
+    const userHandleBytes = new Uint8Array(assertion.response.userHandle);
+    userIdHex = Array.from(userHandleBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    // Try to decode as UTF-8 text (many implementations store email/username as the user ID)
+    try {
+      const decoder = new TextDecoder('utf-8', { fatal: true });
+      const decoded = decoder.decode(userHandleBytes);
+      // Check if it looks like readable text (not binary garbage)
+      if (/^[\x20-\x7E]+$/.test(decoded) && decoded.length > 0) {
+        userIdentifier = decoded;
+      }
+    } catch (e) {
+      // Not valid UTF-8, will show hex
+    }
+  }
+  
+  // Auth success header with user identifier
+  const authHeader = document.createElement("div");
+  authHeader.className = "check-item animated";
+  
+  let userInfoHtml = '';
+  if (userIdentifier) {
+    userInfoHtml = `
+      <div class="passkey-user-info">
+        <span class="passkey-user-icon">👤</span>
+        <span class="passkey-user-name">${userIdentifier}</span>
+      </div>
+    `;
+  } else if (userIdHex) {
+    userInfoHtml = `
+      <div class="passkey-user-info">
+        <span class="passkey-user-icon">🪪</span>
+        <span class="passkey-user-id">User ID: ${userIdHex.substring(0, 16)}${userIdHex.length > 16 ? '...' : ''}</span>
+      </div>
+    `;
+  }
+  
+  authHeader.innerHTML = `
+    <div class="check-item-header">
+      <span class="check-item-name">
+        <span class="dot-indicator ok"></span>
+        <span>🔓 Authentication Successful</span>
+      </span>
+    </div>
+    ${userInfoHtml}
+    <div class="check-item-summary">
+      ${userIdentifier ? `Authenticated as <strong>${userIdentifier}</strong>. ` : ''}Here are the passkey's backup flags:
+    </div>
+  `;
+  backupTestResults.appendChild(authHeader);
+
+  // Main result item
+  const mainItem = document.createElement("div");
+  mainItem.className = "check-item animated";
+  mainItem.style.animationDelay = "0.05s";
+  mainItem.innerHTML = `
+    <div class="check-item-header">
+      <span class="check-item-name">
+        <span class="dot-indicator ${description.security === 'high' ? 'ok' : description.security === 'standard' ? 'ok' : description.security === 'warning' ? 'maybe' : 'no'}"></span>
+        <span>${description.icon} ${description.title}</span>
+      </span>
+    </div>
+    <div class="check-item-summary">${description.description}</div>
+  `;
+  backupTestResults.appendChild(mainItem);
+
+  // Flag details grid
+  const gridContainer = document.createElement("div");
+  gridContainer.className = "backup-result-grid";
+  gridContainer.style.animationDelay = "0.1s";
+  
+  // BE Flag
+  const beItem = document.createElement("div");
+  beItem.className = "backup-result-item";
+  beItem.innerHTML = `
+    <div class="backup-result-label">Backup Eligible (BE)</div>
+    <div class="backup-result-value ${flags.backupEligible ? 'eligible' : 'device-bound'}">
+      <span class="dot-indicator ${flags.backupEligible ? 'ok' : 'maybe'}"></span>
+      ${flags.backupEligible ? 'Yes — Syncable' : 'No — Device-Bound'}
+    </div>
+  `;
+  gridContainer.appendChild(beItem);
+  
+  // BS Flag
+  const bsItem = document.createElement("div");
+  bsItem.className = "backup-result-item";
+  bsItem.innerHTML = `
+    <div class="backup-result-label">Backup State (BS)</div>
+    <div class="backup-result-value ${flags.backupState ? 'backed-up' : 'not-backed-up'}">
+      <span class="dot-indicator ${flags.backupState ? 'ok' : flags.backupEligible ? 'maybe' : 'no'}"></span>
+      ${flags.backupState ? 'Yes — Backed Up' : 'No — Not Backed Up'}
+    </div>
+  `;
+  gridContainer.appendChild(bsItem);
+  
+  // UV Flag
+  const uvItem = document.createElement("div");
+  uvItem.className = "backup-result-item";
+  uvItem.innerHTML = `
+    <div class="backup-result-label">User Verified (UV)</div>
+    <div class="backup-result-value" style="color: ${flags.userVerified ? 'var(--success)' : 'var(--text-muted)'}">
+      <span class="dot-indicator ${flags.userVerified ? 'ok' : 'no'}"></span>
+      ${flags.userVerified ? 'Yes — Biometric/PIN Used' : 'No'}
+    </div>
+  `;
+  gridContainer.appendChild(uvItem);
+  
+  // UP Flag
+  const upItem = document.createElement("div");
+  upItem.className = "backup-result-item";
+  upItem.innerHTML = `
+    <div class="backup-result-label">User Present (UP)</div>
+    <div class="backup-result-value" style="color: ${flags.userPresent ? 'var(--success)' : 'var(--text-muted)'}">
+      <span class="dot-indicator ${flags.userPresent ? 'ok' : 'no'}"></span>
+      ${flags.userPresent ? 'Yes — User Interacted' : 'No'}
+    </div>
+  `;
+  gridContainer.appendChild(upItem);
+  
+  backupTestResults.appendChild(gridContainer);
+  
+  // Credential ID info
+  const credIdItem = document.createElement("div");
+  credIdItem.className = "check-item animated";
+  credIdItem.style.animationDelay = "0.15s";
+  const credIdBase64 = btoa(String.fromCharCode(...new Uint8Array(assertion.rawId)));
+  
+  // Build user handle info for display
+  let userHandleDisplay = 'Not provided';
+  if (assertion.response.userHandle && assertion.response.userHandle.byteLength > 0) {
+    if (userIdentifier) {
+      userHandleDisplay = userIdentifier;
+    } else {
+      userHandleDisplay = `(hex) ${userIdHex}`;
+    }
+  }
+  
+  credIdItem.innerHTML = `
+    <div class="check-item-header">
+      <span class="check-item-name">
+        <span>🪪</span>
+        <span>Credential Info</span>
+      </span>
+    </div>
+    <div class="code-example" style="margin-top: 8px; word-break: break-all;">
+User Handle: ${userHandleDisplay}
+Credential ID: ${credIdBase64.substring(0, 32)}...
+Type: ${assertion.type}
+Authenticator Attachment: ${assertion.authenticatorAttachment || 'not reported'}
+    </div>
+  `;
+  backupTestResults.appendChild(credIdItem);
+
+  // Raw flags
+  const rawItem = document.createElement("div");
+  rawItem.className = "check-item animated";
+  rawItem.style.animationDelay = "0.2s";
+  rawItem.innerHTML = `
+    <div class="check-item-header">
+      <span class="check-item-name">
+        <span>📋</span>
+        <span>Raw Flags Byte</span>
+      </span>
+    </div>
+    <div class="code-example" style="margin-top: 8px;">
+Flags byte: 0x${flags.rawFlags.toString(16).padStart(2, '0').toUpperCase()} (binary: ${flags.rawFlags.toString(2).padStart(8, '0')})
+
+Bit breakdown:
+  Bit 0 (UP - User Present): ${flags.userPresent ? '1' : '0'}
+  Bit 2 (UV - User Verified): ${flags.userVerified ? '1' : '0'}
+  Bit 3 (BS - Backup State): ${flags.backupState ? '1' : '0'}
+  Bit 4 (BE - Backup Eligible): ${flags.backupEligible ? '1' : '0'}
+  Bit 6 (AT - Attested Credential): ${flags.attestedCredentialData ? '1' : '0'}
+  Bit 7 (ED - Extension Data): ${flags.extensionData ? '1' : '0'}
+    </div>
+  `;
+  backupTestResults.appendChild(rawItem);
+
+  // Tip about monitoring
+  const tipItem = document.createElement("div");
+  tipItem.className = "check-item animated";
+  tipItem.style.animationDelay = "0.25s";
+  tipItem.innerHTML = `
+    <div class="use-case-box">
+      <div class="use-case-title">💡 Monitoring Tip</div>
+      <div class="use-case-text">
+        The BS (Backup State) flag can change over time. A passkey that was <code>BS=0</code> (not yet backed up) 
+        may later become <code>BS=1</code> once it syncs to the cloud. Monitor this flag on each authentication 
+        to track backup status changes.
+      </div>
+    </div>
+  `;
+  backupTestResults.appendChild(tipItem);
+}
+
+function initBackup() {
+  testBackupStateBtn.addEventListener("click", testBackupState);
+  testBackupAuthBtn.addEventListener("click", testBackupStateAuth);
+  
+  // Initialize education sub-tabs
+  initEducationTabs();
+}
+
+// ==========================================================================
+// Education Sub-Tabs
+// ==========================================================================
+function initEducationTabs() {
+  const eduTabs = document.querySelectorAll('.edu-tab');
+  const eduContents = document.querySelectorAll('.edu-tab-content');
+  
+  eduTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.eduTab;
+      
+      // Remove active from all tabs and contents
+      eduTabs.forEach(t => t.classList.remove('active'));
+      eduContents.forEach(c => c.classList.remove('active'));
+      
+      // Add active to clicked tab
+      tab.classList.add('active');
+      
+      // Show corresponding content
+      const targetContent = document.getElementById(`edu-${targetTab}`);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    });
+  });
+}
+
+// ==========================================================================
 // Initialize Application
 // ==========================================================================
 function init() {
@@ -1656,6 +2299,7 @@ function init() {
   initExtensions();
   initPrf();
   initConditional();
+  initBackup();
   updateEnvironment();
 }
 

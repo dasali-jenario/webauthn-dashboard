@@ -54,6 +54,11 @@
         <span>Conditional UI</span>
         <span class="nav-tab-badge">L3</span>
       </button>
+      <button class="nav-tab" data-section="backup">
+        <span class="nav-tab-icon">☁️</span>
+        <span>Backup State</span>
+        <span class="nav-tab-badge">L3</span>
+      </button>
     </nav>
 
     <!-- ===== Main Content ===== -->
@@ -1587,6 +1592,707 @@ const credential = await navigator.credentials.create(options);</div>
                 <strong>⚠️ Browser Support</strong><br>
                 <strong>Conditional Get:</strong> Chrome 108+, Safari 16+, Edge 108+, Firefox 122+<br>
                 <strong>Conditional Create:</strong> Chrome 128+, Safari 18+ (newer feature)
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== Section: Backup State & Syncability ========== -->
+      <section id="section-backup" class="check-section">
+        <div class="section-header">
+          <div class="section-title-block">
+            <h2>
+              <span>☁️</span>
+              Credential Backup State & Syncability
+            </h2>
+            <p>
+              Understand how passkeys are backed up and synced across devices using the <code>BE</code> (Backup Eligible) and <code>BS</code> (Backup State) flags in WebAuthn L3.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <!-- Left: Education -->
+          <div class="card education-card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">📚 Education</div>
+                  <div class="card-subtitle">Understanding credential backup and sync</div>
+                </div>
+              </div>
+
+              <!-- TL;DR Summary Box -->
+              <div class="tldr-box">
+                <div class="tldr-header">
+                  <span class="tldr-icon">⚡</span>
+                  <span class="tldr-title">TL;DR</span>
+                </div>
+                <div class="tldr-content">
+                  <p><strong>Two flags</strong> in WebAuthn tell you about passkey backup:</p>
+                  <div class="tldr-flags">
+                    <div class="tldr-flag">
+                      <code>BE</code>
+                      <span>Can it sync?</span>
+                    </div>
+                    <div class="tldr-arrow">→</div>
+                    <div class="tldr-flag">
+                      <code>BS</code>
+                      <span>Has it synced?</span>
+                    </div>
+                  </div>
+                  <p class="tldr-bottom">Use these to make security decisions and guide users on recovery options.</p>
+                  <p class="tldr-note"><strong>Note:</strong> RPs cannot control backup — these flags are only available <em>after</em> passkey creation.</p>
+                </div>
+              </div>
+
+              <!-- Visual Backup Flow Diagram -->
+              <div class="backup-flow-diagram">
+                <div class="flow-title">How Passkey Backup Works</div>
+                <div class="flow-container">
+                  <div class="flow-step">
+                    <div class="flow-icon">📱</div>
+                    <div class="flow-label">Device</div>
+                    <div class="flow-sublabel">Creates passkey</div>
+                  </div>
+                  <div class="flow-arrow">
+                    <div class="flow-arrow-line"></div>
+                    <div class="flow-arrow-label">BE=1?</div>
+                  </div>
+                  <div class="flow-step">
+                    <div class="flow-icon">☁️</div>
+                    <div class="flow-label">Cloud</div>
+                    <div class="flow-sublabel">Encrypted backup</div>
+                  </div>
+                  <div class="flow-arrow">
+                    <div class="flow-arrow-line"></div>
+                    <div class="flow-arrow-label">BS=1</div>
+                  </div>
+                  <div class="flow-step">
+                    <div class="flow-icon">💻</div>
+                    <div class="flow-label">Other Devices</div>
+                    <div class="flow-sublabel">Synced access</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabbed Sub-Navigation -->
+              <div class="edu-tabs">
+                <button class="edu-tab active" data-edu-tab="basics">
+                  <span>📖</span> Basics
+                </button>
+                <button class="edu-tab" data-edu-tab="deep-dive">
+                  <span>🔬</span> Deep Dive
+                </button>
+                <button class="edu-tab" data-edu-tab="platforms">
+                  <span>🌐</span> Platforms
+                </button>
+              </div>
+
+              <!-- Tab Content: Basics -->
+              <div class="edu-tab-content active" id="edu-basics">
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">1</span>
+                    <h4>What are BE and BS flags?</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">WebAuthn L3 added two bits to the authenticator data that tell you about backup status.</p>
+                    
+                    <div class="flag-cards">
+                      <div class="flag-card be-card">
+                        <div class="flag-card-header">
+                          <code class="flag-code">BE</code>
+                          <span class="flag-name">Backup Eligible</span>
+                        </div>
+                        <div class="flag-card-body">
+                          <p><strong>Can</strong> this passkey be backed up?</p>
+                          <ul class="flag-list">
+                            <li><code>BE=1</code> → Syncable (iCloud, Google, etc.)</li>
+                            <li><code>BE=0</code> → Device-bound (security keys)</li>
+                          </ul>
+                          <div class="flag-note">
+                            <span>📌</span> Set at creation, never changes
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="flag-card bs-card">
+                        <div class="flag-card-header">
+                          <code class="flag-code">BS</code>
+                          <span class="flag-name">Backup State</span>
+                        </div>
+                        <div class="flag-card-body">
+                          <p><strong>Has</strong> this passkey been backed up?</p>
+                          <ul class="flag-list">
+                            <li><code>BS=1</code> → Currently backed up</li>
+                            <li><code>BS=0</code> → Not yet synced</li>
+                          </ul>
+                          <div class="flag-note">
+                            <span>🔄</span> Can change over time
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">2</span>
+                    <h4>The Four Possible States</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <div class="backup-matrix interactive">
+                      <div class="backup-matrix-item hardware-key" onclick="this.classList.toggle('expanded')">
+                        <div class="backup-matrix-flags">BE=0, BS=0</div>
+                        <div class="backup-matrix-icon">🔑</div>
+                        <div class="backup-matrix-title">Hardware Security Key</div>
+                        <div class="backup-matrix-desc">Device-bound, cannot be synced.</div>
+                        <div class="backup-matrix-expanded">
+                          <div class="matrix-detail">
+                            <strong>Security:</strong> Highest — private key never leaves hardware
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Recovery:</strong> None — lost device = lost access
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Use case:</strong> Enterprise, banking, compliance
+                          </div>
+                        </div>
+                      </div>
+                      <div class="backup-matrix-item synced-ready" onclick="this.classList.toggle('expanded')">
+                        <div class="backup-matrix-flags">BE=1, BS=1</div>
+                        <div class="backup-matrix-icon">☁️</div>
+                        <div class="backup-matrix-title">Synced Passkey</div>
+                        <div class="backup-matrix-desc">Backed up and available everywhere.</div>
+                        <div class="backup-matrix-expanded">
+                          <div class="matrix-detail">
+                            <strong>Security:</strong> Good — E2E encrypted in cloud
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Recovery:</strong> Automatic on new devices
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Use case:</strong> Consumer apps, most websites
+                          </div>
+                        </div>
+                      </div>
+                      <div class="backup-matrix-item sync-pending" onclick="this.classList.toggle('expanded')">
+                        <div class="backup-matrix-flags">BE=1, BS=0</div>
+                        <div class="backup-matrix-icon">⏳</div>
+                        <div class="backup-matrix-title">Sync Pending</div>
+                        <div class="backup-matrix-desc">Eligible but not yet backed up.</div>
+                        <div class="backup-matrix-expanded">
+                          <div class="matrix-detail">
+                            <strong>Why:</strong> Device offline, sync disabled, or new
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Action:</strong> Prompt user to check sync settings
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Risk:</strong> No recovery if device lost now
+                          </div>
+                        </div>
+                      </div>
+                      <div class="backup-matrix-item invalid-state" onclick="this.classList.toggle('expanded')">
+                        <div class="backup-matrix-flags">BE=0, BS=1</div>
+                        <div class="backup-matrix-icon">⚠️</div>
+                        <div class="backup-matrix-title">Invalid State</div>
+                        <div class="backup-matrix-desc">Should never occur.</div>
+                        <div class="backup-matrix-expanded">
+                          <div class="matrix-detail">
+                            <strong>Meaning:</strong> Logical error — can't be backed up if not eligible
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Action:</strong> Log and investigate if seen
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Cause:</strong> Potentially a bug or attack
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="matrix-hint">💡 Click any card above to see more details</p>
+                  </div>
+                </div>
+
+                <!-- Cross-link to related tabs -->
+                <div class="related-links">
+                  <div class="related-links-title">🔗 Related Topics</div>
+                  <div class="related-links-grid">
+                    <button class="related-link" onclick="document.querySelector('[data-section=prf]').click()">
+                      <span>🎲</span>
+                      <div>
+                        <strong>PRF Extension</strong>
+                        <span>Derive encryption keys from synced passkeys</span>
+                      </div>
+                    </button>
+                    <button class="related-link" onclick="document.querySelector('[data-section=capabilities]').click()">
+                      <span>📋</span>
+                      <div>
+                        <strong>Client Capabilities</strong>
+                        <span>Check passkeyPlatformAuthenticator support</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab Content: Deep Dive -->
+              <div class="edu-tab-content" id="edu-deep-dive">
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">1</span>
+                    <h4>Reading the Flags</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">The BE and BS flags are stored in the <strong>flags byte</strong> of authenticator data (byte index 32).</p>
+                    
+                    <div class="byte-diagram">
+                      <div class="byte-title">Flags Byte Structure</div>
+                      <div class="byte-bits">
+                        <div class="byte-bit" data-bit="7">ED</div>
+                        <div class="byte-bit" data-bit="6">AT</div>
+                        <div class="byte-bit" data-bit="5">—</div>
+                        <div class="byte-bit highlight-be" data-bit="4">BE</div>
+                        <div class="byte-bit highlight-bs" data-bit="3">BS</div>
+                        <div class="byte-bit" data-bit="2">UV</div>
+                        <div class="byte-bit" data-bit="1">—</div>
+                        <div class="byte-bit" data-bit="0">UP</div>
+                      </div>
+                      <div class="byte-legend">
+                        <span><strong>BE</strong> = Bit 4 (0x10)</span>
+                        <span><strong>BS</strong> = Bit 3 (0x08)</span>
+                      </div>
+                    </div>
+
+                    <div class="code-block">
+                      <div class="code-header">
+                        <span>JavaScript</span>
+                        <button class="code-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">Copy</button>
+                      </div>
+                      <pre class="code-content">// Parse flags from authenticator data
+const authData = new Uint8Array(response.authenticatorData);
+const flags = authData[32];
+
+// Extract BE and BS
+const backupEligible = (flags & 0x10) !== 0;  // Bit 4
+const backupState = (flags & 0x08) !== 0;     // Bit 3
+
+console.log({ backupEligible, backupState });</pre>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">2</span>
+                    <h4>Security Considerations</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <div class="security-grid">
+                      <div class="security-item good">
+                        <div class="security-icon">✅</div>
+                        <div class="security-content">
+                          <strong>Synced passkeys are secure</strong>
+                          <p>End-to-end encrypted. Platform provider can't read them.</p>
+                        </div>
+                      </div>
+                      <div class="security-item caution">
+                        <div class="security-icon">⚠️</div>
+                        <div class="security-content">
+                          <strong>Account compromise = passkey compromise</strong>
+                          <p>If someone hacks the user's iCloud/Google account, they get the passkeys too.</p>
+                        </div>
+                      </div>
+                      <div class="security-item info">
+                        <div class="security-icon">💡</div>
+                        <div class="security-content">
+                          <strong>Consider step-up auth for high-value ops</strong>
+                          <p>For banking/payments with synced passkeys, add extra verification.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">3</span>
+                    <h4>Server-Side Best Practices</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <div class="best-practice-list">
+                      <div class="best-practice">
+                        <div class="bp-number">1</div>
+                        <div class="bp-content">
+                          <strong>Store BE at registration</strong>
+                          <p>It's immutable — save it once for future decisions.</p>
+                        </div>
+                      </div>
+                      <div class="best-practice">
+                        <div class="bp-number">2</div>
+                        <div class="bp-content">
+                          <strong>Check BS on each login</strong>
+                          <p>Detect when sync status changes and notify users.</p>
+                        </div>
+                      </div>
+                      <div class="best-practice">
+                        <div class="bp-number">3</div>
+                        <div class="bp-content">
+                          <strong>Don't reject synced passkeys</strong>
+                          <p>They're fine for 99% of apps. Only high-security scenarios need device-bound.</p>
+                        </div>
+                      </div>
+                      <div class="best-practice">
+                        <div class="bp-number">4</div>
+                        <div class="bp-content">
+                          <strong>Communicate to users</strong>
+                          <p>Tell them "Saved to iCloud Keychain" so they understand recovery.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab Content: Platforms -->
+              <div class="edu-tab-content" id="edu-platforms">
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">🌐</span>
+                    <h4>Platform Sync Providers</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">Different platforms handle passkey sync differently. Here's what you need to know:</p>
+                    
+                    <div class="platform-grid">
+                      <div class="platform-card">
+                        <div class="platform-header">
+                          <span class="platform-icon">🍎</span>
+                          <div class="platform-info">
+                            <strong>Apple iCloud Keychain</strong>
+                            <span class="platform-flags">BE=1, BS=1</span>
+                          </div>
+                        </div>
+                        <div class="platform-body">
+                          <ul>
+                            <li>Syncs across iPhone, iPad, Mac</li>
+                            <li>End-to-end encrypted</li>
+                            <li>Requires iCloud Keychain enabled</li>
+                            <li>Available on iOS 16+, macOS Ventura+</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div class="platform-card">
+                        <div class="platform-header">
+                          <span class="platform-icon">🤖</span>
+                          <div class="platform-info">
+                            <strong>Google Password Manager</strong>
+                            <span class="platform-flags">BE=1, BS=1</span>
+                          </div>
+                        </div>
+                        <div class="platform-body">
+                          <ul>
+                            <li>Syncs across Android and Chrome</li>
+                            <li>Tied to Google account</li>
+                            <li>Works on Android 9+</li>
+                            <li>Chrome 118+ on desktop</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div class="platform-card">
+                        <div class="platform-header">
+                          <span class="platform-icon">🪟</span>
+                          <div class="platform-info">
+                            <strong>Windows Hello</strong>
+                            <span class="platform-flags device-bound">BE=0 (device-bound)</span>
+                          </div>
+                        </div>
+                        <div class="platform-body">
+                          <ul>
+                            <li>Currently NOT synced</li>
+                            <li>TPM-backed, highest security</li>
+                            <li>Microsoft working on sync</li>
+                            <li>Expected in future Windows updates</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div class="platform-card">
+                        <div class="platform-header">
+                          <span class="platform-icon">🔐</span>
+                          <div class="platform-info">
+                            <strong>Third-Party Managers</strong>
+                            <span class="platform-flags">BE=1, BS=1</span>
+                          </div>
+                        </div>
+                        <div class="platform-body">
+                          <ul>
+                            <li>1Password, Dashlane, Bitwarden</li>
+                            <li>Cross-platform sync</li>
+                            <li>Works on all OS and browsers</li>
+                            <li>Own cloud infrastructure</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="platform-comparison">
+                  <div class="comparison-title">Quick Comparison</div>
+                  <table class="comparison-table">
+                    <thead>
+                      <tr>
+                        <th>Platform</th>
+                        <th>Syncs?</th>
+                        <th>Cross-Platform?</th>
+                        <th>Recovery</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>🍎 Apple</td>
+                        <td class="yes">✓ Yes</td>
+                        <td class="partial">Apple only</td>
+                        <td>iCloud</td>
+                      </tr>
+                      <tr>
+                        <td>🤖 Google</td>
+                        <td class="yes">✓ Yes</td>
+                        <td class="partial">Android + Chrome</td>
+                        <td>Google Account</td>
+                      </tr>
+                      <tr>
+                        <td>🪟 Windows</td>
+                        <td class="no">✗ Not yet</td>
+                        <td class="no">Windows only</td>
+                        <td>None</td>
+                      </tr>
+                      <tr>
+                        <td>🔐 1Password etc.</td>
+                        <td class="yes">✓ Yes</td>
+                        <td class="yes">✓ All platforms</td>
+                        <td>Vault backup</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Implementation & Device Check -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">🧪 Device Compatibility Check</div>
+                  <div class="card-subtitle">Test your device's backup capabilities</div>
+                </div>
+                <div id="backupSupportBadge" class="badge warn">
+                  <span class="badge-dot"></span>
+                  <span id="backupSupportStatus">Not tested</span>
+                </div>
+              </div>
+
+              <div class="info-box">
+                <strong>How this test works:</strong><br>
+                Create a new passkey to check device backup capabilities, or authenticate with an existing passkey to see its current BE and BS flags.
+              </div>
+
+              <div class="section-actions" style="margin-top: 12px; gap: 8px;">
+                <button id="testBackupStateBtn" class="primary">
+                  <span>✨</span>
+                  <span>Create & Check</span>
+                </button>
+                <button id="testBackupAuthBtn" class="secondary">
+                  <span>🔓</span>
+                  <span>Authenticate & Check</span>
+                </button>
+              </div>
+
+              <!-- Backup Test Results -->
+              <div id="backupTestResults" class="check-list" style="margin-top: 16px;">
+                <div class="check-item" style="opacity: 0.5;">
+                  <div class="check-item-description">
+                    Click "Check Backup State" to test your device's credential backup capabilities.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Implementation Section -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">📝 Implementation</div>
+                
+                <div class="check-item" style="margin-top: 8px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🔍</span>
+                      <span>Reading Flags from AuthenticatorData</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// The flags are in byte 32 (index 32) of authenticatorData
+const authData = new Uint8Array(response.authenticatorData);
+const flags = authData[32];
+
+// Bit 4 = Backup Eligible (BE)
+const backupEligible = (flags & 0x10) !== 0;
+
+// Bit 3 = Backup State (BS)  
+const backupState = (flags & 0x08) !== 0;
+
+console.log("Backup Eligible:", backupEligible);
+console.log("Backed Up:", backupState);</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🛡️</span>
+                      <span>Security Decision Logic</span>
+                    </span>
+                  </div>
+                  <div class="code-example">function assessCredentialSecurity(backupEligible, backupState) {
+  if (!backupEligible) {
+    // Device-bound credential - highest assurance
+    return { 
+      level: "high", 
+      type: "device-bound",
+      advice: "Hardware security key or non-syncing platform"
+    };
+  }
+  
+  if (backupState) {
+    // Synced passkey - good for consumer apps
+    return { 
+      level: "standard", 
+      type: "synced",
+      advice: "User has recovery via cloud backup"
+    };
+  }
+  
+  // Syncable but not yet synced
+  return { 
+    level: "warning", 
+    type: "pending-sync",
+    advice: "Prompt user to verify sync is enabled"
+  };
+}</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>📊</span>
+                      <span>Server-Side Validation</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// On registration, store the backup eligibility
+await db.credentials.insert({
+  credentialId: credential.id,
+  publicKey: publicKey,
+  backupEligible: flags.be,  // Store this!
+  userId: user.id
+});
+
+// On authentication, check for state changes
+if (storedCredential.backupEligible && !currentFlags.bs) {
+  // Credential should be synced but isn't
+  // Maybe show a warning to the user
+  notifyUser("Your passkey may not be backed up");
+}
+
+// High-security operations
+if (transaction.amount > 10000 && flags.be) {
+  // Synced passkey used for high-value transaction
+  // Consider requiring step-up authentication
+  requireAdditionalVerification();
+}</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🎯</span>
+                      <span>Using getClientCapabilities()</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Check if platform supports synced passkeys
+const caps = await PublicKeyCredential.getClientCapabilities();
+
+if (caps.passkeyPlatformAuthenticator) {
+  // Platform supports synced passkeys
+  console.log("Synced passkeys available!");
+} else if (caps.userVerifyingPlatformAuthenticator) {
+  // Platform auth exists but may be device-bound
+  console.log("Platform authenticator (may be device-bound)");
+} else {
+  // No platform authenticator
+  console.log("Only security keys available");
+}</div>
+                </div>
+              </div>
+
+              <!-- Best Practices -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">✨ Best Practices</div>
+                <div class="check-list" style="margin-top: 8px;">
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>💾</span>
+                        <span>Store BE flag at registration</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      The Backup Eligible flag is immutable — save it once and use it for future security decisions.
+                    </div>
+                  </div>
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>🔄</span>
+                        <span>Check BS flag on each login</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      The Backup State can change — monitor it to detect when credentials become synced or lose sync.
+                    </div>
+                  </div>
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>👍</span>
+                        <span>Don't reject synced passkeys</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      For most apps, synced passkeys are fine. Only high-security scenarios (banking, government) might require device-bound credentials.
+                    </div>
+                  </div>
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>💬</span>
+                        <span>Communicate clearly to users</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      Let users know their passkey is "saved to iCloud" or "backed up to Google" so they understand recovery options.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-box warning" style="margin-top: 16px;">
+                <strong>⚠️ Important: RPs Cannot Control Backup</strong><br>
+                The backup flags are <strong>read-only and informational</strong> — Relying Parties have <strong>no way</strong> to control whether a passkey can be backed up or not. The authenticator and platform make this decision based on their own policies. You can only <strong>observe</strong> these flags <strong>after</strong> a passkey has been created, not influence them beforehand.
               </div>
             </div>
           </div>
