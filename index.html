@@ -1272,6 +1272,46 @@
               Extensions add optional functionality to WebAuthn operations. Specify them in the <code>extensions</code> property of your create/get options.
             </p>
           </div>
+          <div class="section-actions">
+            <button id="testExtensionsBtn" class="primary">
+              <span>🧪</span>
+              <span>Test Extension Support</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Extension Support Detector -->
+        <div id="extensionDetectorCard" class="card" style="margin-bottom: 18px;">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+                <div class="card-title">Extension Support Detector</div>
+                <div class="card-subtitle">Test which extensions your device and browser actually support</div>
+              </div>
+              <div id="extTestBadge" class="badge warn">
+                <span class="badge-dot"></span>
+                <span id="extTestStatus">Not tested</span>
+            </div>
+          </div>
+
+            <div class="info-box">
+              <strong>🧪 How this works:</strong><br>
+              Clicking "Test Extension Support" will create a temporary credential with all extensions enabled, then check which ones returned data. This requires completing the WebAuthn prompt.
+          </div>
+
+            <div id="extensionResults" class="check-list" style="margin-top: 12px;">
+              <div class="check-item" style="opacity: 0.5;">
+                <div class="check-item-description">
+                  Click "Test Extension Support" to detect which extensions work on this device.
+                </div>
+              </div>
+            </div>
+
+            <div id="extensionRawResults" style="display: none; margin-top: 12px;">
+              <div class="section-label">Raw Extension Results</div>
+              <div id="extensionResultsLog" class="log" style="max-height: 200px;"></div>
+            </div>
+          </div>
         </div>
 
         <div class="card-grid">
@@ -2663,6 +2703,219 @@ extensions: { largeBlob: { read: true } }</div>
 
     testHintsCreateBtn.addEventListener("click", testHintsWithCreate);
     testHintsGetBtn.addEventListener("click", testHintsWithGet);
+
+    // =========================================================================
+    // Extension Support Testing
+    // =========================================================================
+    const testExtensionsBtn = document.getElementById("testExtensionsBtn");
+    const extensionResults = document.getElementById("extensionResults");
+    const extensionRawResults = document.getElementById("extensionRawResults");
+    const extensionResultsLog = document.getElementById("extensionResultsLog");
+    const extTestBadge = document.getElementById("extTestBadge");
+    const extTestStatus = document.getElementById("extTestStatus");
+
+    // Extensions to test during credential creation
+    const EXTENSIONS_TO_TEST = [
+      {
+        key: "credProps",
+        name: "credProps",
+        icon: "📝",
+        description: "Credential properties (discoverable check)",
+        createOptions: { credProps: true },
+        checkResult: (result) => result?.credProps !== undefined
+      },
+      {
+        key: "largeBlob",
+        name: "largeBlob",
+        icon: "💾",
+        description: "Large blob storage support check",
+        createOptions: { largeBlob: { support: "preferred" } },
+        checkResult: (result) => result?.largeBlob !== undefined
+      },
+      {
+        key: "prf",
+        name: "prf",
+        icon: "🎲",
+        description: "Pseudo-random function for key derivation",
+        createOptions: { prf: { } },
+        checkResult: (result) => result?.prf !== undefined
+      },
+      {
+        key: "minPinLength",
+        name: "minPinLength",
+        icon: "🔢",
+        description: "Minimum PIN length policy",
+        createOptions: { minPinLength: true },
+        checkResult: (result) => result?.minPinLength !== undefined
+      },
+      {
+        key: "credProtect",
+        name: "credProtect",
+        icon: "🛡️",
+        description: "Credential protection level",
+        createOptions: { credentialProtectionPolicy: "userVerificationOptional" },
+        checkResult: (result) => result?.credProtect !== undefined
+      },
+      {
+        key: "hmacCreateSecret",
+        name: "hmac-secret",
+        icon: "🔐",
+        description: "HMAC secret extension (CTAP2)",
+        createOptions: { hmacCreateSecret: true },
+        checkResult: (result) => result?.hmacCreateSecret !== undefined
+      }
+    ];
+
+    function setExtBadgeState(state, text) {
+      extTestBadge.classList.remove("ok", "warn", "error");
+      extTestBadge.classList.add(state);
+      extTestStatus.textContent = text;
+    }
+
+    function renderExtensionResults(results, rawResult) {
+      extensionResults.innerHTML = "";
+      
+      let supported = 0;
+      let unsupported = 0;
+
+      results.forEach((ext, i) => {
+        if (ext.supported) supported++;
+        else unsupported++;
+
+        const item = document.createElement("div");
+        item.className = "check-item animated";
+        item.style.animationDelay = `${i * 0.05}s`;
+
+        const dotClass = ext.supported ? "ok" : "no";
+        const statusClass = ext.supported ? "supported" : "not-supported";
+        const statusLabel = ext.supported ? "✓ Supported" : "✗ Not detected";
+
+        let resultDetail = "";
+        if (ext.supported && ext.resultData) {
+          resultDetail = `<div class="code-example" style="margin-top: 8px; font-size: 0.7rem;">${JSON.stringify(ext.resultData, null, 2)}</div>`;
+        }
+
+        item.innerHTML = `
+          <div class="check-item-header">
+            <span class="check-item-name">
+              <span class="dot-indicator ${dotClass}"></span>
+              <span>${ext.icon} ${ext.name}</span>
+            </span>
+            <span class="check-item-status ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="check-item-summary">${ext.description}</div>
+          ${resultDetail}
+        `;
+        extensionResults.appendChild(item);
+      });
+
+      // Show raw results
+      extensionRawResults.style.display = "block";
+      extensionResultsLog.textContent = JSON.stringify(rawResult, null, 2);
+
+      // Update badge
+      if (supported > 0) {
+        setExtBadgeState("ok", `${supported}/${results.length} supported`);
+      } else {
+        setExtBadgeState("warn", "Limited support");
+      }
+    }
+
+    async function testExtensionSupport() {
+      if (typeof PublicKeyCredential === "undefined") {
+        setExtBadgeState("error", "No WebAuthn");
+        extensionResults.innerHTML = `<div class="check-item"><div class="check-item-description" style="color: var(--danger);">WebAuthn is not available on this platform.</div></div>`;
+        return;
+      }
+
+      testExtensionsBtn.disabled = true;
+      testExtensionsBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
+      setExtBadgeState("warn", "Testing…");
+
+      // Build combined extensions object
+      const allExtensions = {};
+      EXTENSIONS_TO_TEST.forEach(ext => {
+        Object.assign(allExtensions, ext.createOptions);
+      });
+
+      // Generate random values
+      const challenge = new Uint8Array(32);
+      crypto.getRandomValues(challenge);
+      const userId = new Uint8Array(16);
+      crypto.getRandomValues(userId);
+
+      const createOptions = {
+        publicKey: {
+          challenge: challenge,
+          rp: {
+            name: "WebAuthn Explorer - Extension Test",
+            id: window.location.hostname
+          },
+          user: {
+            id: userId,
+            name: "extension-test@example.com",
+            displayName: "Extension Test User"
+          },
+          pubKeyCredParams: [
+            { type: "public-key", alg: -7 },   // ES256
+            { type: "public-key", alg: -257 }  // RS256
+          ],
+          authenticatorSelection: {
+            residentKey: "preferred",
+            userVerification: "preferred"
+          },
+          timeout: 120000,
+          extensions: allExtensions
+        }
+      };
+
+      try {
+        const credential = await navigator.credentials.create(createOptions);
+        const extensionResults = credential.getClientExtensionResults();
+
+        // Check each extension
+        const results = EXTENSIONS_TO_TEST.map(ext => {
+          const supported = ext.checkResult(extensionResults);
+          return {
+            ...ext,
+            supported: supported,
+            resultData: supported ? extensionResults[ext.key] : null
+          };
+        });
+
+        renderExtensionResults(results, extensionResults);
+
+      } catch (err) {
+        console.error("Extension test error:", err);
+        
+        if (err.name === "NotAllowedError") {
+          setExtBadgeState("warn", "Cancelled");
+          extensionResults.innerHTML = `
+            <div class="check-item">
+              <div class="check-item-description">
+                <strong>Test cancelled.</strong> You need to complete the WebAuthn prompt to test extension support.
+              </div>
+            </div>
+          `;
+        } else {
+          setExtBadgeState("error", "Error");
+          extensionResults.innerHTML = `
+            <div class="check-item">
+              <div class="check-item-description" style="color: var(--danger);">
+                <strong>${err.name}:</strong> ${err.message}
+              </div>
+            </div>
+          `;
+        }
+        extensionRawResults.style.display = "block";
+        extensionResultsLog.textContent = JSON.stringify({ error: err.message, name: err.name }, null, 2);
+      } finally {
+        testExtensionsBtn.disabled = false;
+        testExtensionsBtn.innerHTML = "<span>🧪</span><span>Test Extension Support</span>";
+      }
+    }
+
+    testExtensionsBtn.addEventListener("click", testExtensionSupport);
 
     // =========================================================================
     // Initialize
