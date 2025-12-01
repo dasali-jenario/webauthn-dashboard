@@ -875,6 +875,10 @@
         <span>Authenticator Hints</span>
         <span class="nav-tab-badge">L3</span>
       </button>
+      <button class="nav-tab" data-section="extensions">
+        <span class="nav-tab-icon">🧩</span>
+        <span>Extensions</span>
+      </button>
     </nav>
 
     <!-- ===== Main Content ===== -->
@@ -1255,6 +1259,483 @@
           </div>
         </div>
       </section>
+
+      <!-- ========== Section: WebAuthn Extensions ========== -->
+      <section id="section-extensions" class="check-section">
+        <div class="section-header">
+          <div class="section-title-block">
+            <h2>
+              <span>🧩</span>
+              WebAuthn Extensions
+            </h2>
+            <p>
+              Extensions add optional functionality to WebAuthn operations. Specify them in the <code>extensions</code> property of your create/get options.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <!-- Left: Core Extensions -->
+          <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+                  <div class="card-title">Core Extensions</div>
+                  <div class="card-subtitle">Commonly used extensions for passkey implementations</div>
+              </div>
+              </div>
+
+              <div class="check-list" id="coreExtensionsList">
+                <!-- credProps -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>📝 credProps</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Get information about the credential that was just created, including whether it's <strong>discoverable</strong> (resident).
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Know if credential is discoverable</div>
+                        <div class="detail-explanation">…the rk (resident key) property tells you if it's stored on the authenticator.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Verify authenticator compliance</div>
+                        <div class="detail-explanation">…confirm the authenticator respected your residentKey preference.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Adjust your UX accordingly</div>
+                        <div class="detail-explanation">…show different flows for discoverable vs. server-side credentials.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Essential when you request residentKey: 'preferred'. The authenticator might not support it, so credProps tells you what actually happened.</div>
+                    </div>
+                    <div class="code-example">extensions: { credProps: true }
+// Response: { rk: true }</div>
+            </div>
+          </div>
+
+                <!-- largeBlob -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>💾 largeBlob</span>
+                    </span>
+          </div>
+                  <div class="check-item-summary">
+                    Store and retrieve arbitrary data (up to ~4KB) alongside a credential on the authenticator.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Store data with the credential</div>
+                        <div class="detail-explanation">…like encryption keys, certificates, or user preferences.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Data travels with the credential</div>
+                        <div class="detail-explanation">…if passkeys sync, the blob syncs too.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Read data during authentication</div>
+                        <div class="detail-explanation">…retrieve the blob when the user signs in.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Advanced use case: store a wrapped encryption key so users can decrypt data on any device where their passkey syncs. Also useful for offline-first apps.</div>
+                    </div>
+                    <div class="code-example">// Write
+extensions: { largeBlob: { write: new Uint8Array([...]) } }
+// Read
+extensions: { largeBlob: { read: true } }</div>
+                  </div>
+                </div>
+
+                <!-- PRF -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>🎲 prf (Pseudo-Random Function)</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Derive deterministic secret keys from a credential — the same input always produces the same output.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Generate encryption keys</div>
+                        <div class="detail-explanation">…derive keys for encrypting user data client-side.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Deterministic output</div>
+                        <div class="detail-explanation">…same credential + same input = same derived key, every time.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">No server storage needed</div>
+                        <div class="detail-explanation">…the key is derived on-demand, never stored.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">End-to-end encryption without key escrow. Derive encryption keys from the passkey itself — if the passkey syncs, the encryption capability follows.</div>
+                    </div>
+                    <div class="code-example">extensions: {
+  prf: { eval: { first: new Uint8Array(32) } }
+}</div>
+                  </div>
+                </div>
+
+                <!-- devicePubKey -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>🔐 devicePubKey</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Get a device-bound key in addition to the credential, enabling device binding for synced passkeys.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Separate device-bound key</div>
+                        <div class="detail-explanation">…doesn't sync, stays on this specific device.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Detect new devices</div>
+                        <div class="detail-explanation">…know when a synced passkey is used from a new device.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Step-up authentication trigger</div>
+                        <div class="detail-explanation">…prompt additional verification for unknown devices.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Banks and high-security apps: even with synced passkeys, detect when authentication comes from a new device and trigger additional verification.</div>
+                    </div>
+                    <div class="code-example">extensions: { devicePubKey: { attestation: "direct" } }</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Security & Compatibility Extensions -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Security & Compatibility</div>
+                  <div class="card-subtitle">Extensions for security policies and legacy support</div>
+                </div>
+              </div>
+
+              <div class="check-list">
+                <!-- credProtect -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>🛡️ credProtect</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Control when and how a credential can be used — restrict to user verification or specific use cases.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">1️⃣</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Level 1: userVerificationOptional</div>
+                        <div class="detail-explanation">…credential usable with or without UV (default).</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">2️⃣</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Level 2: userVerificationOptionalWithCredentialIDList</div>
+                        <div class="detail-explanation">…discoverable only if credential ID is provided.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">3️⃣</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Level 3: userVerificationRequired</div>
+                        <div class="detail-explanation">…credential ONLY works with user verification.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">High-security scenarios where you want to ensure the credential can't be used without biometric/PIN verification, even if the RP doesn't request it.</div>
+                    </div>
+                    <div class="code-example">extensions: {
+  credentialProtectionPolicy: "userVerificationRequired",
+  enforceCredentialProtectionPolicy: true
+}</div>
+                  </div>
+                </div>
+
+                <!-- minPinLength -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>🔢 minPinLength</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Request authenticators enforce a minimum PIN length for added security.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Enforce PIN complexity</div>
+                        <div class="detail-explanation">…require PINs of at least N characters.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Query current PIN length policy</div>
+                        <div class="detail-explanation">…check what minimum the authenticator currently enforces.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Meet compliance requirements</div>
+                        <div class="detail-explanation">…satisfy enterprise security policies.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Enterprise deployments where security policies require PINs of a certain length. Useful for FIDO2 security key rollouts.</div>
+                    </div>
+                    <div class="code-example">extensions: { minPinLength: true }</div>
+                  </div>
+                </div>
+
+                <!-- uvm -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>🔍 uvm (User Verification Method)</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Learn which method the user used to verify their identity — fingerprint, face, PIN, etc.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Know how the user authenticated</div>
+                        <div class="detail-explanation">…fingerprint, face recognition, PIN, or presence.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Audit and compliance logging</div>
+                        <div class="detail-explanation">…record the verification method for security audits.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Adaptive security decisions</div>
+                        <div class="detail-explanation">…require stronger UV for sensitive operations.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Security auditing and compliance. Know if the user used a biometric (stronger) vs. PIN (weaker) so you can make risk-based decisions.</div>
+                    </div>
+                    <div class="code-example">extensions: { uvm: true }
+// Response: [[0x02, 0x04, 0x02]] → fingerprint</div>
+                  </div>
+                </div>
+
+                <!-- appid -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>🔄 appid (U2F Compatibility)</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Allow WebAuthn to authenticate with credentials originally registered via the legacy U2F API.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Migrate from U2F to WebAuthn</div>
+                        <div class="detail-explanation">…existing U2F credentials keep working.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Specify the original App ID</div>
+                        <div class="detail-explanation">…the U2F appId used during registration.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Gradual migration path</div>
+                        <div class="detail-explanation">…no need to re-register all users at once.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">If you previously used U2F (chrome.runtime.sendMessage or the u2f-api.js polyfill), use appid to let those old credentials work with WebAuthn.</div>
+                    </div>
+                    <div class="code-example">extensions: { appid: "https://example.com" }</div>
+                  </div>
+                </div>
+
+                <!-- SPC -->
+                <div class="check-item">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span class="dot-indicator ok"></span>
+                      <span>💳 Secure Payment Confirmation</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Streamlined payment authentication that shows transaction details in the WebAuthn prompt.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Display transaction details</div>
+                        <div class="detail-explanation">…amount, merchant, currency shown in browser UI.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">User confirms with biometric</div>
+                        <div class="detail-explanation">…one gesture to authenticate and confirm payment.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Cryptographic proof of consent</div>
+                        <div class="detail-explanation">…the signature covers the transaction details.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Online checkout flows. Replace SMS OTP or card CVV with a single biometric confirmation that proves the user saw and approved the exact transaction.</div>
+                    </div>
+                    <div class="code-example">const payment = new PaymentRequest([{
+  supportedMethods: "secure-payment-confirmation",
+  data: { credentialIds, challenge, ... }
+}], details);</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-box" style="margin-top: 12px;">
+                <strong>📚 Extension Support Varies</strong><br>
+                Not all authenticators or browsers support all extensions. Always check the extension output in the response to confirm your request was honored. Use feature detection when available.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- ===== Footer ===== -->
@@ -1530,6 +2011,260 @@
         ],
         useCase: "Handles the case where a user has a passkey their device remembers, but your server has deleted. Prevents repeated failed attempts.",
         codeExample: "PublicKeyCredential.signalUnknownCredential({...})"
+      },
+
+      // =========================================================================
+      // WebAuthn Extensions
+      // =========================================================================
+      
+      "extension:credProps": {
+        name: "Credential Properties (credProps)",
+        icon: "📝",
+        summary: "Get information about the credential that was just created, including whether it's discoverable (resident).",
+        details: [
+          {
+            icon: "✔",
+            title: "Know if credential is discoverable",
+            explanation: "…the rk (resident key) property tells you if it's stored on the authenticator."
+          },
+          {
+            icon: "✔",
+            title: "Verify authenticator compliance",
+            explanation: "…confirm the authenticator respected your residentKey preference."
+          },
+          {
+            icon: "✔",
+            title: "Adjust your UX accordingly",
+            explanation: "…show different flows for discoverable vs. server-side credentials."
+          }
+        ],
+        useCase: "Essential when you request residentKey: 'preferred'. The authenticator might not support it, so credProps tells you what actually happened.",
+        codeExample: "extensions: { credProps: true }\n// Response: { rk: true }"
+      },
+
+      "extension:largeBlob": {
+        name: "Large Blob Storage (largeBlob)",
+        icon: "💾",
+        summary: "Store and retrieve arbitrary data (up to ~4KB) alongside a credential on the authenticator.",
+        details: [
+          {
+            icon: "✔",
+            title: "Store data with the credential",
+            explanation: "…like encryption keys, certificates, or user preferences."
+          },
+          {
+            icon: "✔",
+            title: "Data travels with the credential",
+            explanation: "…if passkeys sync, the blob syncs too."
+          },
+          {
+            icon: "✔",
+            title: "Read data during authentication",
+            explanation: "…retrieve the blob when the user signs in."
+          }
+        ],
+        useCase: "Advanced use case: store a wrapped encryption key so users can decrypt data on any device where their passkey syncs. Also useful for offline-first apps.",
+        codeExample: "extensions: { largeBlob: { write: new Uint8Array([...]) } }\n// Or read: { largeBlob: { read: true } }"
+      },
+
+      "extension:prf": {
+        name: "Pseudo-Random Function (PRF)",
+        icon: "🎲",
+        summary: "Derive deterministic secret keys from a credential — the same input always produces the same output.",
+        details: [
+          {
+            icon: "✔",
+            title: "Generate encryption keys",
+            explanation: "…derive keys for encrypting user data client-side."
+          },
+          {
+            icon: "✔",
+            title: "Deterministic output",
+            explanation: "…same credential + same input = same derived key, every time."
+          },
+          {
+            icon: "✔",
+            title: "No server storage needed",
+            explanation: "…the key is derived on-demand, never stored."
+          }
+        ],
+        useCase: "End-to-end encryption without key escrow. Derive encryption keys from the passkey itself — if the passkey syncs, the encryption capability follows.",
+        codeExample: "extensions: {\n  prf: { eval: { first: new Uint8Array(32) } }\n}"
+      },
+
+      "extension:minPinLength": {
+        name: "Minimum PIN Length (minPinLength)",
+        icon: "🔢",
+        summary: "Request authenticators enforce a minimum PIN length for added security.",
+        details: [
+          {
+            icon: "✔",
+            title: "Enforce PIN complexity",
+            explanation: "…require PINs of at least N characters."
+          },
+          {
+            icon: "✔",
+            title: "Query current PIN length policy",
+            explanation: "…check what minimum the authenticator currently enforces."
+          },
+          {
+            icon: "✔",
+            title: "Meet compliance requirements",
+            explanation: "…satisfy enterprise security policies."
+          }
+        ],
+        useCase: "Enterprise deployments where security policies require PINs of a certain length. Useful for FIDO2 security key rollouts.",
+        codeExample: "extensions: { minPinLength: true }"
+      },
+
+      "extension:credProtect": {
+        name: "Credential Protection (credProtect)",
+        icon: "🛡️",
+        summary: "Control when and how a credential can be used — restrict to user verification or specific use cases.",
+        details: [
+          {
+            icon: "✔",
+            title: "Level 1: userVerificationOptional",
+            explanation: "…credential usable with or without UV (default)."
+          },
+          {
+            icon: "✔",
+            title: "Level 2: userVerificationOptionalWithCredentialIDList",
+            explanation: "…discoverable only if credential ID is provided."
+          },
+          {
+            icon: "✔",
+            title: "Level 3: userVerificationRequired",
+            explanation: "…credential ONLY works with user verification."
+          }
+        ],
+        useCase: "High-security scenarios where you want to ensure the credential can't be used without biometric/PIN verification, even if the RP doesn't request it.",
+        codeExample: "extensions: {\n  credentialProtectionPolicy: \"userVerificationRequired\",\n  enforceCredentialProtectionPolicy: true\n}"
+      },
+
+      "extension:appid": {
+        name: "App ID (U2F Compatibility)",
+        icon: "🔄",
+        summary: "Allow WebAuthn to authenticate with credentials originally registered via the legacy U2F API.",
+        details: [
+          {
+            icon: "✔",
+            title: "Migrate from U2F to WebAuthn",
+            explanation: "…existing U2F credentials keep working."
+          },
+          {
+            icon: "✔",
+            title: "Specify the original App ID",
+            explanation: "…the U2F appId used during registration."
+          },
+          {
+            icon: "✔",
+            title: "Gradual migration path",
+            explanation: "…no need to re-register all users at once."
+          }
+        ],
+        useCase: "If you previously used U2F (chrome.runtime.sendMessage or the u2f-api.js polyfill), use appid to let those old credentials work with WebAuthn.",
+        codeExample: "extensions: { appid: \"https://example.com\" }"
+      },
+
+      "extension:appidExclude": {
+        name: "App ID Exclude",
+        icon: "🚫",
+        summary: "Prevent registration if the user already has a U2F credential for the specified App ID.",
+        details: [
+          {
+            icon: "✔",
+            title: "Check for existing U2F credentials",
+            explanation: "…during WebAuthn registration."
+          },
+          {
+            icon: "✔",
+            title: "Avoid duplicate registrations",
+            explanation: "…user can't register same authenticator twice."
+          },
+          {
+            icon: "✔",
+            title: "Clean migration from U2F",
+            explanation: "…prevents confusion during transition."
+          }
+        ],
+        useCase: "During U2F → WebAuthn migration, exclude authenticators that already have U2F credentials to prevent duplicate entries.",
+        codeExample: "extensions: { appidExclude: \"https://example.com\" }"
+      },
+
+      "extension:uvm": {
+        name: "User Verification Method (uvm)",
+        icon: "🔍",
+        summary: "Learn which method the user used to verify their identity — fingerprint, face, PIN, etc.",
+        details: [
+          {
+            icon: "✔",
+            title: "Know how the user authenticated",
+            explanation: "…fingerprint, face recognition, PIN, or presence."
+          },
+          {
+            icon: "✔",
+            title: "Audit and compliance logging",
+            explanation: "…record the verification method for security audits."
+          },
+          {
+            icon: "✔",
+            title: "Adaptive security decisions",
+            explanation: "…require stronger UV for sensitive operations."
+          }
+        ],
+        useCase: "Security auditing and compliance. Know if the user used a biometric (stronger) vs. PIN (weaker) so you can make risk-based decisions.",
+        codeExample: "extensions: { uvm: true }\n// Response: [[0x02, 0x04, 0x02]] → fingerprint"
+      },
+
+      "extension:devicePubKey": {
+        name: "Device Public Key (devicePubKey)",
+        icon: "🔐",
+        summary: "Get a device-bound key in addition to the credential, enabling device binding for synced passkeys.",
+        details: [
+          {
+            icon: "✔",
+            title: "Separate device-bound key",
+            explanation: "…doesn't sync, stays on this specific device."
+          },
+          {
+            icon: "✔",
+            title: "Detect new devices",
+            explanation: "…know when a synced passkey is used from a new device."
+          },
+          {
+            icon: "✔",
+            title: "Step-up authentication trigger",
+            explanation: "…prompt additional verification for unknown devices."
+          }
+        ],
+        useCase: "Banks and high-security apps: even with synced passkeys, detect when authentication comes from a new device and trigger additional verification.",
+        codeExample: "extensions: { devicePubKey: { attestation: \"direct\" } }"
+      },
+
+      "extension:payment": {
+        name: "Secure Payment Confirmation (SPC)",
+        icon: "💳",
+        summary: "Streamlined payment authentication that shows transaction details in the WebAuthn prompt.",
+        details: [
+          {
+            icon: "✔",
+            title: "Display transaction details",
+            explanation: "…amount, merchant, currency shown in browser UI."
+          },
+          {
+            icon: "✔",
+            title: "User confirms with biometric",
+            explanation: "…one gesture to authenticate and confirm payment."
+          },
+          {
+            icon: "✔",
+            title: "Cryptographic proof of consent",
+            explanation: "…the signature covers the transaction details."
+          }
+        ],
+        useCase: "Online checkout flows. Replace SMS OTP or card CVV with a single biometric confirmation that proves the user saw and approved the exact transaction.",
+        codeExample: "const payment = new PaymentRequest([{\n  supportedMethods: \"secure-payment-confirmation\",\n  data: { credentialIds, challenge, ... }\n}], details);"
       }
     };
 
