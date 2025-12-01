@@ -1097,47 +1097,154 @@
               </div>
               </div>
 
-              <div class="check-list">
+              <div class="check-list" id="hintsExplanationList">
+                <!-- security-key -->
                 <div class="check-item">
                   <div class="check-item-header">
                     <span class="check-item-name">
                       <span class="dot-indicator ok"></span>
-                      security-key
+                      <span>🔑 security-key</span>
                     </span>
                   </div>
-                  <div class="check-item-description">
-                    Suggests the relying party prefers a <strong>roaming authenticator</strong> like a USB security key (YubiKey, Titan Key), NFC token, or Bluetooth device. Use this when you want to encourage hardware-backed, device-bound credentials that can't be synced.
+                  <div class="check-item-summary">
+                    Suggests the relying party prefers a <strong>roaming authenticator</strong> like a USB security key, NFC token, or Bluetooth device.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Hardware-backed security</div>
+                        <div class="detail-explanation">…credentials live on a physical device that can't be remotely compromised.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Device-bound, non-syncable</div>
+                        <div class="detail-explanation">…the private key never leaves the security key hardware.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Portable across devices</div>
+                        <div class="detail-explanation">…plug the same key into any computer to authenticate.</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">High-security environments where you need phishing-resistant, hardware-bound credentials. Common for enterprise SSO, admin accounts, or compliance requirements (NIST, PCI-DSS).</div>
+                    </div>
+                    <div class="code-example">hints: ["security-key"]</div>
             </div>
           </div>
 
+                <!-- client-device -->
                 <div class="check-item">
                   <div class="check-item-header">
                     <span class="check-item-name">
                       <span class="dot-indicator ok"></span>
-                      client-device
+                      <span>💻 client-device</span>
                     </span>
           </div>
-                  <div class="check-item-description">
-                    Suggests the relying party prefers the <strong>platform authenticator</strong> built into the current device — such as Touch ID, Face ID, Windows Hello, or Android biometrics. Great for seamless UX when you trust the device.
+                  <div class="check-item-summary">
+                    Suggests the relying party prefers the <strong>platform authenticator</strong> built into the current device — Touch ID, Face ID, Windows Hello.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Zero friction authentication</div>
+                        <div class="detail-explanation">…users tap their finger or glance at the camera — done.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">No external hardware needed</div>
+                        <div class="detail-explanation">…works with what's already built into the device.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">May sync across devices</div>
+                        <div class="detail-explanation">…depending on platform (iCloud Keychain, Google Password Manager).</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Consumer apps prioritizing ease of use. Best for returning users on trusted personal devices where you want the fastest possible login experience.</div>
+                    </div>
+                    <div class="code-example">hints: ["client-device"]</div>
                   </div>
                 </div>
 
+                <!-- hybrid -->
                 <div class="check-item">
                   <div class="check-item-header">
                     <span class="check-item-name">
                       <span class="dot-indicator ok"></span>
-                      hybrid
+                      <span>📱 hybrid</span>
                     </span>
                   </div>
-                  <div class="check-item-description">
-                    Suggests the relying party prefers <strong>cross-device authentication</strong> using a phone or tablet as the authenticator (CTAP 2.2 hybrid transport). The user scans a QR code and authenticates on their phone via Bluetooth proximity.
+                  <div class="check-item-summary">
+                    Suggests the relying party prefers <strong>cross-device authentication</strong> using a phone as the authenticator via QR code + Bluetooth.
+                  </div>
+                  <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>▶</span>
+                    <span class="toggle-text">Learn more</span>
+                    <span class="toggle-text-collapse">Show less</span>
+                  </div>
+                  <div class="check-item-details">
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Desktop shows QR code</div>
+                        <div class="detail-explanation">…user scans it with their phone's camera.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Authenticate on your phone</div>
+                        <div class="detail-explanation">…using Face ID, Touch ID, or fingerprint on the mobile device.</div>
+                      </div>
+                    </div>
+                    <div class="detail-point">
+                      <span class="detail-icon">✔</span>
+                      <div class="detail-content">
+                        <div class="detail-title">Bluetooth verifies proximity</div>
+                        <div class="detail-explanation">…ensures the phone is physically nearby (anti-phishing protection).</div>
+                      </div>
+                    </div>
+                    <div class="use-case-box">
+                      <div class="use-case-title">💡 When to use</div>
+                      <div class="use-case-text">Shared computers, public terminals, or devices without biometrics. Perfect for library computers, hotel business centers, or when users are on someone else's machine.</div>
+                    </div>
+                    <div class="code-example">hints: ["hybrid"]</div>
                   </div>
                 </div>
               </div>
 
               <div class="info-box" style="margin-top: 12px;">
-                <strong>💡 Ordering Matters</strong><br>
-                Hints are processed in order. The first hint is the most preferred. Browsers may show UI reflecting your preference, but users always have the final choice.
+                <strong>⚠️ Hints are Non-Binding</strong><br>
+                The browser may ignore hints based on user preferences, available authenticators, or platform policies. Hints guide the UI — they don't restrict options.
+              </div>
+
+              <div class="info-box" style="margin-top: 8px;">
+                <strong>📋 Ordering Matters</strong><br>
+                Hints are processed in array order. The first hint is the strongest preference. Example: <code>["client-device", "hybrid"]</code> means "prefer platform authenticator, but offer phone-as-key as fallback."
               </div>
 
               <div id="hintTestResult" class="hint-result" style="display: none; margin-top: 12px;">
