@@ -4,842 +4,7 @@
   <meta charset="UTF-8" />
   <title>WebAuthn Explorer — Understand & Test WebAuthn Features</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg: #050816;
-      --bg-card: #0b1020;
-      --accent: #3b82f6;
-      --accent-soft: rgba(59, 130, 246, 0.15);
-      --accent-purple: #8b5cf6;
-      --accent-teal: #14b8a6;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --warning: #eab308;
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
-      --border-subtle: rgba(148, 163, 184, 0.2);
-      --radius-xl: 18px;
-      --radius-lg: 14px;
-      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.9);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(ellipse at top, #111827 0%, #020617 50%, #000 100%);
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px;
-    }
-
-    .app-shell {
-      max-width: 1280px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* ===== Header ===== */
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    .title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      letter-spacing: 0.02em;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
-    }
-
-    .subtitle {
-      margin: 0;
-      font-size: 0.92rem;
-      color: var(--text-muted);
-      max-width: 550px;
-      line-height: 1.5;
-    }
-
-    .header-meta {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-    }
-
-    .pill {
-      font-size: 0.72rem;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid var(--border-subtle);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
-    }
-
-    .pill-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--accent);
-    }
-
-    .browser-pill {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-
-    /* ===== Navigation Tabs ===== */
-    .nav-tabs {
-      display: flex;
-      gap: 6px;
-      padding: 6px;
-      background: rgba(15, 23, 42, 0.6);
-      border-radius: 16px;
-      border: 1px solid var(--border-subtle);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .nav-tab {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 12px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease-out;
-    }
-
-    .nav-tab:hover {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .nav-tab.active {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-      color: white;
-      box-shadow: 0 2px 12px rgba(59, 130, 246, 0.2);
-    }
-
-    .nav-tab-icon {
-      font-size: 1.1rem;
-    }
-
-    .nav-tab-badge {
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 999px;
-      background: rgba(34, 197, 94, 0.2);
-      color: var(--success);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* ===== Main Content ===== */
-    main {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .check-section {
-      display: none;
-    }
-
-    .check-section.active {
-      display: block;
-    }
-
-    .section-header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .section-title-block h2 {
-      margin: 0;
-      font-size: 1.3rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title-block p {
-      margin: 4px 0 0;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      max-width: 600px;
-    }
-
-    .section-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    /* ===== Buttons ===== */
-    button.primary {
-      border: none;
-      outline: none;
-      cursor: pointer;
-      border-radius: 999px;
-      padding: 10px 20px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
-      color: white;
-      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: transform 0.1s ease-out, box-shadow 0.15s ease-out, filter 0.15s ease-out;
-    }
-
-    button.primary:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.08);
-      box-shadow: 0 12px 32px rgba(37, 99, 235, 0.55);
-    }
-
-    button.primary:active {
-      transform: translateY(0);
-      filter: brightness(0.95);
-    }
-
-    button.secondary {
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.8);
-      color: var(--text-muted);
-      padding: 8px 16px;
-      font-size: 0.82rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: all 0.12s ease-out;
-    }
-
-    button.secondary:hover {
-      border-color: rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-main);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-      filter: none !important;
-    }
-
-    /* ===== Cards ===== */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-      gap: 18px;
-    }
-
-    @media (max-width: 840px) {
-      .card-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .card {
-      border-radius: var(--radius-xl);
-      background: radial-gradient(ellipse at top left, #111827 0%, #020617 70%);
-      border: 1px solid rgba(30, 64, 175, 0.35);
-      box-shadow: var(--shadow-soft);
-      padding: 18px 20px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: -50%;
-      background:
-        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.1) 0, transparent 50%),
-        radial-gradient(circle at 100% 0, rgba(139, 92, 246, 0.1) 0, transparent 45%);
-      opacity: 0.8;
-      pointer-events: none;
-    }
-
-    .card-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .card-title {
-      font-size: 0.88rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #9ca3af;
-    }
-
-    .card-subtitle {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    /* ===== Status Badges ===== */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      border: 1px solid var(--border-subtle);
-      background: rgba(15, 23, 42, 0.96);
-    }
-
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-    }
-
-    .badge.ok .badge-dot { background: var(--success); box-shadow: 0 0 8px rgba(34, 197, 94, 0.7); }
-    .badge.warn .badge-dot { background: var(--warning); box-shadow: 0 0 8px rgba(234, 179, 8, 0.7); }
-    .badge.error .badge-dot { background: var(--danger); box-shadow: 0 0 8px rgba(239, 68, 68, 0.7); }
-
-    /* ===== Section Labels ===== */
-    .section-label {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-      border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
-      padding-bottom: 5px;
-      margin-bottom: 8px;
-    }
-
-    /* ===== Capability / Check Items ===== */
-    .check-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .check-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding: 12px 14px;
-      background: rgba(15, 23, 42, 0.55);
-      border-radius: var(--radius-lg);
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      transition: border-color 0.15s, background 0.15s;
-    }
-
-    .check-item:hover {
-      border-color: rgba(148, 163, 184, 0.2);
-      background: rgba(15, 23, 42, 0.75);
-    }
-
-    .check-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .check-item-name {
-      font-size: 0.85rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .check-item-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.25);
-    }
-
-    .check-item-status.supported { color: var(--success); }
-    .check-item-status.not-supported { color: var(--danger); }
-    .check-item-status.unknown { color: var(--warning); }
-
-    .check-item-description {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .check-item-summary {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 6px;
-    }
-
-    .check-item-details {
-      display: none;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(148, 163, 184, 0.2);
-    }
-
-    .check-item.expanded .check-item-details {
-      display: flex;
-    }
-
-    .check-item-toggle {
-      font-size: 0.72rem;
-      color: var(--accent);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 8px;
-      padding: 4px 8px;
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 6px;
-      transition: all 0.15s ease-out;
-    }
-
-    .check-item-toggle:hover {
-      background: rgba(59, 130, 246, 0.2);
-    }
-
-    .check-item-toggle span:first-child {
-      font-size: 0.6rem;
-      transition: transform 0.2s ease-out;
-    }
-
-    .check-item.expanded .check-item-toggle span:first-child {
-      transform: rotate(90deg);
-    }
-
-    .check-item.expanded .check-item-toggle .toggle-text {
-      display: none;
-    }
-
-    .check-item.expanded .check-item-toggle .toggle-text-collapse {
-      display: inline;
-    }
-
-    .check-item-toggle .toggle-text-collapse {
-      display: none;
-    }
-
-    .detail-point {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-
-    .detail-icon {
-      font-size: 0.9rem;
-      flex-shrink: 0;
-      width: 20px;
-      text-align: center;
-    }
-
-    .detail-content {
-      flex: 1;
-    }
-
-    .detail-title {
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--text-main);
-      margin-bottom: 2px;
-    }
-
-    .detail-explanation {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-style: italic;
-    }
-
-    .use-case-box {
-      margin-top: 8px;
-      padding: 10px 12px;
-      background: rgba(59, 130, 246, 0.08);
-      border: 1px solid rgba(59, 130, 246, 0.15);
-      border-radius: 10px;
-    }
-
-    .use-case-title {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent);
-      margin-bottom: 6px;
-    }
-
-    .use-case-text {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .code-example {
-      margin-top: 8px;
-      padding: 8px 10px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 8px;
-      font-family: ui-monospace, monospace;
-      font-size: 0.72rem;
-      color: #a5b4fc;
-      overflow-x: auto;
-    }
-
-    .dot-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      flex-shrink: 0;
-    }
-
-    .dot-indicator.ok { background: var(--success); box-shadow: 0 0 6px rgba(34, 197, 94, 0.5); }
-    .dot-indicator.no { background: var(--danger); box-shadow: 0 0 6px rgba(239, 68, 68, 0.5); }
-    .dot-indicator.maybe { background: var(--warning); box-shadow: 0 0 6px rgba(234, 179, 8, 0.5); }
-
-    /* ===== Environment Grid ===== */
-    .env-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .env-item {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      padding: 10px 12px;
-      background: rgba(15, 23, 42, 0.5);
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.06);
-    }
-
-    .env-label {
-      font-size: 0.66rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-    }
-
-    .env-value {
-      font-size: 0.82rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* ===== Summary Stats ===== */
-    .summary-stats {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .stat-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 18px;
-      background: rgba(15, 23, 42, 0.6);
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.08);
-      min-width: 75px;
-    }
-
-    .stat-number {
-      font-size: 1.4rem;
-      font-weight: 600;
-    }
-
-    .stat-number.green { color: var(--success); }
-    .stat-number.red { color: var(--danger); }
-    .stat-number.yellow { color: var(--warning); }
-
-    .stat-label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-    }
-
-    /* ===== Log / JSON Output ===== */
-    .log-container {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .log-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .log-header span {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .log {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
-      font-size: 0.76rem;
-      background: rgba(15, 23, 42, 0.95);
-      border-radius: var(--radius-lg);
-      border: 1px solid rgba(30, 64, 175, 0.5);
-      padding: 10px 12px;
-      max-height: 350px;
-      overflow: auto;
-      white-space: pre;
-      color: #d1d5db;
-      line-height: 1.5;
-    }
-
-    /* ===== Hints Section Specific ===== */
-    .hint-selector {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .hint-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .hint-option {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.12s ease-out;
-    }
-
-    .hint-option:hover {
-      border-color: rgba(148, 163, 184, 0.4);
-      background: rgba(15, 23, 42, 0.8);
-    }
-
-    .hint-option.selected {
-      border-color: var(--accent);
-      background: rgba(59, 130, 246, 0.15);
-    }
-
-    .hint-option input {
-      display: none;
-    }
-
-    .hint-checkbox {
-      width: 18px;
-      height: 18px;
-      border-radius: 5px;
-      border: 2px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.1s ease-out;
-      font-size: 11px;
-      color: transparent;
-    }
-
-    .hint-option.selected .hint-checkbox {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: white;
-    }
-
-    .hint-label {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .hint-label-name {
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .hint-label-desc {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-    }
-
-    .hint-result {
-      margin-top: 8px;
-      padding: 14px 16px;
-      background: rgba(15, 23, 42, 0.7);
-      border-radius: var(--radius-lg);
-      border: 1px solid rgba(148, 163, 184, 0.1);
-    }
-
-    .hint-result-title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .hint-result-content {
-      font-size: 0.85rem;
-      line-height: 1.6;
-    }
-
-    .hint-code {
-      display: inline-block;
-      padding: 2px 8px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 6px;
-      font-family: ui-monospace, monospace;
-      font-size: 0.8rem;
-      color: var(--accent);
-    }
-
-    /* ===== Info Box ===== */
-    .info-box {
-      padding: 14px 16px;
-      background: rgba(59, 130, 246, 0.08);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: var(--radius-lg);
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      line-height: 1.55;
-    }
-
-    .info-box strong {
-      color: var(--text-main);
-    }
-
-    .info-box code {
-      padding: 1px 6px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 4px;
-      font-family: ui-monospace, monospace;
-      font-size: 0.78rem;
-    }
-
-    /* ===== Footer ===== */
-    footer {
-      margin-top: 8px;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .footer-link {
-      color: var(--accent);
-      text-decoration: none;
-      opacity: 0.75;
-    }
-
-    .footer-link:hover {
-      opacity: 1;
-      text-decoration: underline;
-    }
-
-    /* ===== Animations ===== */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .check-item.animated {
-      animation: fadeIn 0.25s ease-out forwards;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .loading {
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app-shell">
@@ -879,6 +44,16 @@
         <span class="nav-tab-icon">🧩</span>
         <span>Extensions</span>
       </button>
+      <button class="nav-tab" data-section="prf">
+        <span class="nav-tab-icon">🎲</span>
+        <span>PRF Extension</span>
+        <span class="nav-tab-badge">L3</span>
+      </button>
+      <button class="nav-tab" data-section="conditional">
+        <span class="nav-tab-icon">✨</span>
+        <span>Conditional UI</span>
+        <span class="nav-tab-badge">L3</span>
+      </button>
     </nav>
 
     <!-- ===== Main Content ===== -->
@@ -910,17 +85,17 @@
         <div class="card-grid">
           <!-- Left: Dashboard -->
           <div class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Dashboard</div>
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Dashboard</div>
                   <div class="card-subtitle">Interpreted capability results</div>
-              </div>
+                </div>
                 <div id="capStatusBadge" class="badge warn">
-              <span class="badge-dot"></span>
+                  <span class="badge-dot"></span>
                   <span id="capStatusText">Not tested</span>
-            </div>
-          </div>
+                </div>
+              </div>
 
               <!-- Summary Stats -->
               <div id="capSummaryStats" class="summary-stats" style="display: none;">
@@ -939,53 +114,53 @@
               </div>
 
               <!-- Environment -->
-          <div>
+              <div>
                 <div class="section-label">Environment</div>
                 <div class="env-grid">
                   <div class="env-item">
                     <div class="env-label">PublicKeyCredential</div>
                     <div class="env-value">
                       <span id="pkcIndicator" class="dot-indicator maybe"></span>
-                  <span id="pkcText">Checking…</span>
-                </div>
-              </div>
+                      <span id="pkcText">Checking…</span>
+                    </div>
+                  </div>
                   <div class="env-item">
                     <div class="env-label">getClientCapabilities()</div>
                     <div class="env-value">
                       <span id="gccIndicator" class="dot-indicator maybe"></span>
-                  <span id="gccText">Checking…</span>
-                </div>
-              </div>
+                      <span id="gccText">Checking…</span>
+                    </div>
+                  </div>
                   <div class="env-item">
                     <div class="env-label">Legacy UVPAA</div>
                     <div class="env-value">
                       <span id="uvpaaIndicator" class="dot-indicator maybe"></span>
                       <span id="uvpaaText">Checking…</span>
-                </div>
-              </div>
+                    </div>
+                  </div>
                   <div class="env-item">
                     <div class="env-label">Conditional UI</div>
                     <div class="env-value">
                       <span id="conditionalIndicator" class="dot-indicator maybe"></span>
                       <span id="conditionalText">Checking…</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
               <!-- Capabilities List -->
-          <div>
+              <div>
                 <div class="section-label">Detected Capabilities</div>
                 <div id="capabilitiesList" class="check-list">
                   <div class="check-item" style="opacity: 0.5;">
                     <div class="check-item-description">
                       Click "Run Check" to detect capabilities on this device.
+                    </div>
+                  </div>
                 </div>
               </div>
-                </div>
-              </div>
-                </div>
-              </div>
+            </div>
+          </div>
 
           <!-- Right: Raw JSON -->
           <div class="card">
@@ -1003,8 +178,8 @@
                 </div>
                 <div id="capLog" class="log">{"info": "Click 'Run Check' to begin"}</div>
               </div>
-                </div>
-              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1019,8 +194,8 @@
             <p>
               Test the <code>hints</code> parameter (<code>PublicKeyCredentialHints</code>) which guides the browser on which type of authenticator to prefer during registration or authentication.
             </p>
-            </div>
           </div>
+        </div>
 
         <div class="card-grid">
           <!-- Left: Hint Selector & Explanation -->
@@ -1030,7 +205,7 @@
                 <div>
                   <div class="card-title">Hint Selection</div>
                   <div class="card-subtitle">Choose hints to include in your WebAuthn request</div>
-        </div>
+                </div>
               </div>
 
               <div class="info-box">
@@ -1093,12 +268,12 @@
 
           <!-- Right: Explanation & Browser Support -->
           <div class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
                   <div class="card-title">Understanding Hints</div>
                   <div class="card-subtitle">How browsers interpret authenticator hints</div>
-              </div>
+                </div>
               </div>
 
               <div class="check-list" id="hintsExplanationList">
@@ -1145,8 +320,8 @@
                       <div class="use-case-text">High-security environments where you need phishing-resistant, hardware-bound credentials. Common for enterprise SSO, admin accounts, or compliance requirements (NIST, PCI-DSS).</div>
                     </div>
                     <div class="code-example">hints: ["security-key"]</div>
-            </div>
-          </div>
+                  </div>
+                </div>
 
                 <!-- client-device -->
                 <div class="check-item">
@@ -1155,7 +330,7 @@
                       <span class="dot-indicator ok"></span>
                       <span>💻 client-device</span>
                     </span>
-          </div>
+                  </div>
                   <div class="check-item-summary">
                     Suggests the relying party prefers the <strong>platform authenticator</strong> built into the current device — Touch ID, Face ID, Windows Hello.
                   </div>
@@ -1282,22 +457,22 @@
 
         <!-- Extension Support Detector -->
         <div id="extensionDetectorCard" class="card" style="margin-bottom: 18px;">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
+          <div class="card-inner">
+            <div class="card-header">
+              <div>
                 <div class="card-title">Extension Support Detector</div>
                 <div class="card-subtitle">Test which extensions your device and browser actually support</div>
               </div>
               <div id="extTestBadge" class="badge warn">
                 <span class="badge-dot"></span>
                 <span id="extTestStatus">Not tested</span>
+              </div>
             </div>
-          </div>
 
             <div class="info-box">
               <strong>🧪 How this works:</strong><br>
               Clicking "Test Extension Support" will create a temporary credential with all extensions enabled, then check which ones returned data. This requires completing the WebAuthn prompt.
-          </div>
+            </div>
 
             <div id="extensionResults" class="check-list" style="margin-top: 12px;">
               <div class="check-item" style="opacity: 0.5;">
@@ -1317,12 +492,12 @@
         <div class="card-grid">
           <!-- Left: Core Extensions -->
           <div class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
                   <div class="card-title">Core Extensions</div>
                   <div class="card-subtitle">Commonly used extensions for passkey implementations</div>
-              </div>
+                </div>
               </div>
 
               <div class="check-list" id="coreExtensionsList">
@@ -1370,8 +545,8 @@
                     </div>
                     <div class="code-example">extensions: { credProps: true }
 // Response: { rk: true }</div>
-            </div>
-          </div>
+                  </div>
+                </div>
 
                 <!-- largeBlob -->
                 <div class="check-item">
@@ -1380,7 +555,7 @@
                       <span class="dot-indicator ok"></span>
                       <span>💾 largeBlob</span>
                     </span>
-          </div>
+                  </div>
                   <div class="check-item-summary">
                     Store and retrieve arbitrary data (up to ~4KB) alongside a credential on the authenticator.
                   </div>
@@ -1776,6 +951,647 @@ extensions: { largeBlob: { read: true } }</div>
           </div>
         </div>
       </section>
+
+      <!-- ========== Section: PRF Extension ========== -->
+      <section id="section-prf" class="check-section">
+        <div class="section-header">
+          <div class="section-title-block">
+            <h2>
+              <span>🎲</span>
+              PRF Extension (Pseudo-Random Function)
+            </h2>
+            <p>
+              Derive deterministic cryptographic keys from your passkey — perfect for end-to-end encryption without storing keys on a server.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <!-- Left: Education - What is PRF -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">📚 Education</div>
+                  <div class="card-subtitle">Understanding the PRF extension</div>
+                </div>
+              </div>
+
+              <!-- What is PRF -->
+              <div class="prf-education-block">
+                <div class="section-label">What is PRF?</div>
+                <div class="info-box" style="margin-top: 8px;">
+                  <p style="margin: 0 0 12px;">
+                    <strong>PRF (Pseudo-Random Function)</strong> is a WebAuthn extension that lets you derive <em>deterministic secret keys</em> from a passkey credential.
+                  </p>
+                  <p style="margin: 0 0 12px;">
+                    Think of it as a <strong>"secret key generator"</strong> built into your passkey. Given the same input, it always produces the same output — but without the passkey, the output is impossible to predict.
+                  </p>
+                  <p style="margin: 0;">
+                    🔐 <strong>Key insight:</strong> The derived key never leaves the authenticator and is never stored anywhere. It's regenerated fresh each time you authenticate.
+                  </p>
+                </div>
+              </div>
+
+              <!-- How does it work -->
+              <div class="prf-education-block" style="margin-top: 16px;">
+                <div class="section-label">How Does It Work?</div>
+                <div class="check-list" style="margin-top: 8px;">
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>1️⃣ You provide a "salt" (input value)</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      A salt is just a random or application-specific value you pass to the PRF. For example: <code>app-encryption-key-v1</code> encoded as bytes.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>2️⃣ Authenticator computes HMAC</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      The authenticator uses your passkey's internal secret combined with your salt to compute an HMAC-SHA-256. This happens securely inside the authenticator hardware.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>3️⃣ You receive a derived key</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      You get back 32 bytes of cryptographically secure output that you can use as an encryption key, HMAC key, or derive further keys using HKDF.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>4️⃣ Same input = same output, always</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      The same passkey + same salt will always produce the identical derived key. This is what makes it useful for encryption — you can always regenerate the key when needed.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Use Cases -->
+              <div class="prf-education-block" style="margin-top: 16px;">
+                <div class="section-label">💡 Real-World Use Cases</div>
+                <div class="use-case-box" style="margin-top: 8px;">
+                  <div class="use-case-title">🔒 End-to-End Encrypted Notes</div>
+                  <div class="use-case-text">
+                    Encrypt user notes client-side with a key derived from their passkey. The server never sees the encryption key — only the user with the passkey can decrypt their data.
+                  </div>
+                </div>
+                <div class="use-case-box" style="margin-top: 8px;">
+                  <div class="use-case-title">💰 Crypto Wallet Seed Recovery</div>
+                  <div class="use-case-text">
+                    Derive a deterministic seed for a cryptocurrency wallet. If the user loses their device, their synced passkey can regenerate the same seed on any device.
+                  </div>
+                </div>
+                <div class="use-case-box" style="margin-top: 8px;">
+                  <div class="use-case-title">📁 Zero-Knowledge File Storage</div>
+                  <div class="use-case-text">
+                    Encrypt files before uploading to cloud storage. The cloud provider can't read your files because only your passkey can derive the decryption key.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Support Check -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">🧪 Support Check</div>
+                  <div class="card-subtitle">Test if your browser and device support PRF</div>
+                </div>
+                <div id="prfSupportBadge" class="badge warn">
+                  <span class="badge-dot"></span>
+                  <span id="prfSupportStatus">Not tested</span>
+                </div>
+              </div>
+
+              <div class="info-box">
+                <strong>How this test works:</strong><br>
+                We'll create a temporary passkey with the PRF extension enabled, then check if the authenticator returns PRF support information. You'll need to complete the WebAuthn prompt.
+              </div>
+
+              <div class="section-actions" style="margin-top: 12px;">
+                <button id="testPrfSupportBtn" class="primary">
+                  <span>🎲</span>
+                  <span>Test PRF Support</span>
+                </button>
+              </div>
+
+              <!-- PRF Test Results -->
+              <div id="prfTestResults" class="check-list" style="margin-top: 16px;">
+                <div class="check-item" style="opacity: 0.5;">
+                  <div class="check-item-description">
+                    Click "Test PRF Support" to check if PRF works on your device.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Code Examples -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">Code Examples</div>
+                
+                <div class="check-item" style="margin-top: 8px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>📝</span>
+                      <span>Check PRF Support (during registration)</span>
+                    </span>
+                  </div>
+                  <div class="code-example">const credential = await navigator.credentials.create({
+  publicKey: {
+    // ... other options ...
+    extensions: {
+      prf: {}  // Empty object to check support
+    }
+  }
+});
+
+const results = credential.getClientExtensionResults();
+if (results.prf?.enabled) {
+  console.log("PRF is supported!");
+}</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🔑</span>
+                      <span>Derive a Key (during authentication)</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Create your salt (must be exactly 32 bytes)
+const salt = new TextEncoder().encode("my-app-encryption-key-salt-v1!!!");
+
+const assertion = await navigator.credentials.get({
+  publicKey: {
+    challenge: challenge,
+    rpId: "example.com",
+    extensions: {
+      prf: {
+        eval: {
+          first: salt  // Your 32-byte salt
+        }
+      }
+    }
+  }
+});
+
+const results = assertion.getClientExtensionResults();
+const derivedKey = results.prf?.results?.first;
+// derivedKey is a 32-byte ArrayBuffer you can use for encryption</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🔐</span>
+                      <span>Use Derived Key for Encryption</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Import the derived key for AES-GCM encryption
+const cryptoKey = await crypto.subtle.importKey(
+  "raw",
+  derivedKey,
+  { name: "AES-GCM" },
+  false,
+  ["encrypt", "decrypt"]
+);
+
+// Encrypt some data
+const iv = crypto.getRandomValues(new Uint8Array(12));
+const encrypted = await crypto.subtle.encrypt(
+  { name: "AES-GCM", iv: iv },
+  cryptoKey,
+  new TextEncoder().encode("Secret message")
+);</div>
+                </div>
+              </div>
+
+              <!-- Live PRF Demo -->
+              <div id="prfDemoSection" style="display: none; margin-top: 20px;">
+                <div class="section-label">🎮 Live Demo: Derive a Key</div>
+                <div class="hint-result" style="margin-top: 8px;">
+                  <div class="hint-result-content">
+                    <label style="display: block; margin-bottom: 8px;">
+                      <span style="font-size: 0.78rem; color: var(--text-muted);">Enter a salt value (will be padded/truncated to 32 bytes):</span>
+                      <input type="text" id="prfSaltInput" placeholder="my-encryption-salt" 
+                        style="width: 100%; margin-top: 4px; padding: 10px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-main); font-size: 0.85rem;">
+                    </label>
+                    <button id="derivePrfKeyBtn" class="secondary" style="margin-top: 8px;">
+                      <span>🔑</span>
+                      <span>Derive Key</span>
+                    </button>
+                    <div id="prfDerivedKeyResult" style="margin-top: 12px; display: none;">
+                      <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Derived Key (hex):</div>
+                      <code id="prfDerivedKeyHex" style="display: block; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; font-size: 0.72rem; word-break: break-all; color: var(--success);"></code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-box" style="margin-top: 16px;">
+                <strong>⚠️ Browser Support</strong><br>
+                PRF is supported in Chrome 109+, Edge 109+, and Safari 17+. Firefox support is planned. The authenticator must also support the hmac-secret CTAP2 extension.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== Section: Conditional UI (Create/Get) ========== -->
+      <section id="section-conditional" class="check-section">
+        <div class="section-header">
+          <div class="section-title-block">
+            <h2>
+              <span>✨</span>
+              Conditional UI (Create & Get)
+            </h2>
+            <p>
+              Enable seamless passkey experiences with autofill integration and non-intrusive credential creation.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <!-- Left: Education -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">📚 Education</div>
+                  <div class="card-subtitle">Understanding Conditional UI mediation</div>
+                </div>
+              </div>
+
+              <!-- What is Conditional UI -->
+              <div class="conditional-education-block">
+                <div class="section-label">What is Conditional UI?</div>
+                <div class="info-box" style="margin-top: 8px;">
+                  <p style="margin: 0 0 12px;">
+                    <strong>Conditional UI</strong> is a WebAuthn mediation mode that integrates passkeys directly into the browser's native autofill experience — making passwordless login feel as natural as using saved passwords.
+                  </p>
+                  <p style="margin: 0 0 12px;">
+                    Instead of immediately showing a modal WebAuthn prompt, conditional UI waits for the <strong>user to interact</strong> with an input field, then shows passkeys alongside other autofill suggestions.
+                  </p>
+                  <p style="margin: 0;">
+                    🎯 <strong>Key insight:</strong> This removes the friction of modal dialogs and lets users discover passkeys naturally in a UI they already understand.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Conditional Get -->
+              <div class="conditional-education-block" style="margin-top: 16px;">
+                <div class="section-label">🔑 Conditional Get (Autofill Login)</div>
+                <div class="check-list" style="margin-top: 8px;">
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>Passkeys appear in autofill dropdown</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      When users focus a login field with <code>autocomplete="username webauthn"</code>, their passkeys appear right alongside saved passwords.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>No modal popup interruption</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      The authentication request runs silently in the background until the user actually selects a passkey from autofill.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>Single-tap authentication</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      User taps their passkey in autofill → biometric prompt → done. It's as easy as autofilling a password.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="use-case-box" style="margin-top: 12px;">
+                  <div class="use-case-title">💡 When to use Conditional Get</div>
+                  <div class="use-case-text">
+                    Use on <strong>every login page</strong>. Start the conditional request on page load, and let users choose between passkeys, passwords, or other login methods naturally.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Conditional Create -->
+              <div class="conditional-education-block" style="margin-top: 16px;">
+                <div class="section-label">✨ Conditional Create (Deferred Registration)</div>
+                <div class="check-list" style="margin-top: 8px;">
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>Prepare passkey creation silently</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      Check if the device supports passkeys and prepare all parameters without triggering any UI.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>Wait for user intent</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      Only show the passkey creation prompt when the user explicitly clicks "Create Passkey" or similar.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span class="dot-indicator ok"></span>
+                        <span>Graceful fallback</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      If passkeys aren't supported, you know before the user clicks — no awkward error dialogs.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="use-case-box" style="margin-top: 12px;">
+                  <div class="use-case-title">💡 When to use Conditional Create</div>
+                  <div class="use-case-text">
+                    Use during <strong>onboarding flows</strong> or <strong>settings pages</strong> where you want to offer passkey creation at the right moment, not immediately on page load.
+                  </div>
+                </div>
+              </div>
+
+              <!-- How it works diagram -->
+              <div class="conditional-education-block" style="margin-top: 16px;">
+                <div class="section-label">⚙️ How Does It Work?</div>
+                <div class="check-list" style="margin-top: 8px;">
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>1️⃣</span>
+                        <span>Add autocomplete attribute to input</span>
+                      </span>
+                    </div>
+                    <div class="code-example" style="margin-top: 6px;">&lt;input type="text" autocomplete="username webauthn"&gt;</div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>2️⃣</span>
+                        <span>Start conditional request on page load</span>
+                      </span>
+                    </div>
+                    <div class="code-example" style="margin-top: 6px;">const credential = await navigator.credentials.get({
+  publicKey: { challenge, rpId, ... },
+  mediation: "conditional"  // ← The magic
+});</div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>3️⃣</span>
+                        <span>User interacts with input field</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      Browser shows passkeys in autofill UI alongside saved passwords.
+                    </div>
+                  </div>
+
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>4️⃣</span>
+                        <span>User selects passkey → biometric → done</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      The promise resolves with the credential assertion.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Support Check -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">🧪 Support Check</div>
+                  <div class="card-subtitle">Test if your browser supports Conditional UI</div>
+                </div>
+                <div id="conditionalSupportBadge" class="badge warn">
+                  <span class="badge-dot"></span>
+                  <span id="conditionalSupportStatus">Not tested</span>
+                </div>
+              </div>
+
+              <div class="info-box">
+                <strong>How this test works:</strong><br>
+                We'll check if <code>isConditionalMediationAvailable()</code> returns true for Get, and if <code>getClientCapabilities()</code> reports <code>conditionalCreate</code> support for Create. No WebAuthn prompt required!
+              </div>
+
+              <div class="section-actions" style="margin-top: 12px;">
+                <button id="testConditionalSupportBtn" class="primary">
+                  <span>✨</span>
+                  <span>Test Conditional Support</span>
+                </button>
+              </div>
+
+              <!-- Conditional Test Results -->
+              <div id="conditionalTestResults" class="check-list" style="margin-top: 16px;">
+                <div class="check-item" style="opacity: 0.5;">
+                  <div class="check-item-description">
+                    Click "Test Conditional Support" to check browser capabilities.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Code Examples -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">Code Examples</div>
+                
+                <div class="check-item" style="margin-top: 8px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🔍</span>
+                      <span>Check Conditional Get Support</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Check before using conditional mediation
+const supported = await PublicKeyCredential
+  .isConditionalMediationAvailable();
+
+if (supported) {
+  // Safe to use mediation: "conditional"
+  console.log("Conditional UI is supported!");
+}</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🔑</span>
+                      <span>Conditional Get (Autofill Login)</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Start this on page load
+const abortController = new AbortController();
+
+try {
+  const credential = await navigator.credentials.get({
+    publicKey: {
+      challenge: new Uint8Array(32),
+      rpId: "example.com",
+      userVerification: "preferred"
+    },
+    mediation: "conditional",
+    signal: abortController.signal
+  });
+  
+  // User selected a passkey from autofill!
+  console.log("Authenticated:", credential);
+} catch (e) {
+  if (e.name !== "AbortError") throw e;
+}</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>✨</span>
+                      <span>Conditional Create (Deferred)</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Check if conditional create is supported
+const caps = await PublicKeyCredential.getClientCapabilities();
+if (caps.conditionalCreate) {
+  // Can use mediation: "conditional" with create
+}
+
+// Prepare credential options
+const options = {
+  publicKey: {
+    challenge: new Uint8Array(32),
+    rp: { name: "Example", id: "example.com" },
+    user: { id: userId, name: email, displayName: name },
+    pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+    authenticatorSelection: {
+      residentKey: "required",
+      userVerification: "preferred"
+    }
+  },
+  mediation: "conditional"
+};
+
+// Call when user clicks "Create Passkey"
+const credential = await navigator.credentials.create(options);</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>📝</span>
+                      <span>HTML Input Setup</span>
+                    </span>
+                  </div>
+                  <div class="code-example">&lt;!-- For username/email field --&gt;
+&lt;input 
+  type="text" 
+  autocomplete="username webauthn"
+  placeholder="Email or username"
+&gt;
+
+&lt;!-- For password field (passkeys still show) --&gt;
+&lt;input 
+  type="password" 
+  autocomplete="current-password webauthn"
+&gt;</div>
+                </div>
+              </div>
+
+              <!-- Live Demo Section -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">🎮 Live Demo: Autofill Input</div>
+                <div class="hint-result" style="margin-top: 8px;">
+                  <div class="hint-result-content">
+                    <p style="margin: 0 0 12px; font-size: 0.8rem; color: var(--text-muted);">
+                      Focus this input to see if passkeys appear in your browser's autofill menu. This demonstrates how Conditional Get integrates with native browser UI.
+                    </p>
+                    <input 
+                      type="text" 
+                      id="conditionalDemoInput"
+                      autocomplete="username webauthn"
+                      placeholder="Focus me to see passkey autofill..."
+                      style="width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-main); font-size: 0.9rem;"
+                    >
+                    <div style="margin-top: 10px; display: flex; gap: 8px;">
+                      <button id="startConditionalGetBtn" class="secondary">
+                        <span>▶</span>
+                        <span>Start Conditional Get</span>
+                      </button>
+                      <button id="abortConditionalGetBtn" class="secondary" disabled>
+                        <span>⏹</span>
+                        <span>Abort</span>
+                      </button>
+                    </div>
+                    <div id="conditionalGetStatus" style="margin-top: 10px; font-size: 0.78rem; color: var(--text-muted);">
+                      Click "Start Conditional Get" to begin listening for passkey selection.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-box" style="margin-top: 16px;">
+                <strong>⚠️ Browser Support</strong><br>
+                <strong>Conditional Get:</strong> Chrome 108+, Safari 16+, Edge 108+, Firefox 122+<br>
+                <strong>Conditional Create:</strong> Chrome 128+, Safari 18+ (newer feature)
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- ===== Footer ===== -->
@@ -1793,1134 +1609,6 @@ extensions: { largeBlob: { read: true } }</div>
     </footer>
   </div>
 
-  <script>
-    // =========================================================================
-    // Element References
-    // =========================================================================
-    const envPill = document.getElementById("envPill");
-    const envText = document.getElementById("envText");
-    const browserPill = document.getElementById("browserPill");
-
-    // Capabilities Section
-    const runCapabilitiesBtn = document.getElementById("runCapabilitiesBtn");
-    const copyCapabilitiesBtn = document.getElementById("copyCapabilitiesBtn");
-    const capStatusBadge = document.getElementById("capStatusBadge");
-    const capStatusText = document.getElementById("capStatusText");
-    const capSummaryStats = document.getElementById("capSummaryStats");
-    const capStatSupported = document.getElementById("capStatSupported");
-    const capStatUnsupported = document.getElementById("capStatUnsupported");
-    const capStatUnknown = document.getElementById("capStatUnknown");
-    const capabilitiesList = document.getElementById("capabilitiesList");
-    const capLog = document.getElementById("capLog");
-    const capLogLabel = document.getElementById("capLogLabel");
-    const capLogMeta = document.getElementById("capLogMeta");
-
-    const pkcIndicator = document.getElementById("pkcIndicator");
-    const pkcText = document.getElementById("pkcText");
-    const gccIndicator = document.getElementById("gccIndicator");
-    const gccText = document.getElementById("gccText");
-    const uvpaaIndicator = document.getElementById("uvpaaIndicator");
-    const uvpaaText = document.getElementById("uvpaaText");
-    const conditionalIndicator = document.getElementById("conditionalIndicator");
-    const conditionalText = document.getElementById("conditionalText");
-
-    // Hints Section
-    const hintOptions = document.getElementById("hintOptions");
-    const hintCode = document.getElementById("hintCode");
-    const testHintsCreateBtn = document.getElementById("testHintsCreateBtn");
-    const testHintsGetBtn = document.getElementById("testHintsGetBtn");
-    const hintTestResult = document.getElementById("hintTestResult");
-    const hintTestResultContent = document.getElementById("hintTestResultContent");
-
-    // =========================================================================
-    // Capability Definitions (WebAuthn L3) - Rich Educational Content
-    // =========================================================================
-    const CAPABILITY_INFO = {
-      conditionalCreate: {
-        name: "Conditional Create",
-        icon: "✨",
-        summary: "Allows websites to prepare passkey creation without immediately triggering browser UI, waiting for a real user gesture.",
-        details: [
-          {
-            icon: "✔",
-            title: "Check whether the device can create passkeys",
-            explanation: "…without triggering a popup or system UI."
-          },
-          {
-            icon: "✔",
-            title: "Prepare all the WebAuthn parameters",
-            explanation: "…so everything is ready behind the scenes."
-          },
-          {
-            icon: "✔",
-            title: "Wait for a real user gesture",
-            explanation: "…like clicking \"Create account\" or \"Save passkey\"."
-          }
-        ],
-        useCase: "Perfect for onboarding flows where you want to check passkey availability first, then prompt the user at the right moment — not immediately on page load.",
-        codeExample: "mediation: \"conditional\""
-      },
-      conditionalGet: {
-        name: "Conditional Get (Autofill)",
-        icon: "🔑",
-        summary: "Enables passkeys to appear in the browser's autofill suggestions, just like saved passwords.",
-        details: [
-          {
-            icon: "✔",
-            title: "Passkeys appear in autofill dropdown",
-            explanation: "…alongside saved passwords when user focuses a login field."
-          },
-          {
-            icon: "✔",
-            title: "No modal popup required",
-            explanation: "…the authentication flow feels native and non-intrusive."
-          },
-          {
-            icon: "✔",
-            title: "User selects which passkey to use",
-            explanation: "…from a familiar UI they already know from password autofill."
-          }
-        ],
-        useCase: "The key to seamless passkey adoption. Users can authenticate with a single tap from the autofill menu, making passkeys feel as easy as saved passwords.",
-        codeExample: "mediation: \"conditional\", autocomplete: \"username webauthn\""
-      },
-      hybridTransport: {
-        name: "Hybrid Transport",
-        icon: "📱",
-        summary: "Use your phone or tablet as an authenticator for another device via QR code and Bluetooth.",
-        details: [
-          {
-            icon: "✔",
-            title: "Scan a QR code on the desktop",
-            explanation: "…to initiate cross-device authentication."
-          },
-          {
-            icon: "✔",
-            title: "Authenticate on your phone",
-            explanation: "…using Face ID, Touch ID, or fingerprint."
-          },
-          {
-            icon: "✔",
-            title: "Bluetooth verifies proximity",
-            explanation: "…ensuring the phone is physically nearby for security."
-          }
-        ],
-        useCase: "Essential for users on shared/public computers or when the current device lacks biometrics. Your phone becomes a portable authenticator.",
-        codeExample: "transports: [\"hybrid\"]"
-      },
-      passkeyPlatformAuthenticator: {
-        name: "Passkey Platform Authenticator",
-        icon: "☁️",
-        summary: "Supports synced passkeys that automatically sync across your devices via cloud (iCloud Keychain, Google Password Manager, etc.).",
-        details: [
-          {
-            icon: "✔",
-            title: "Create a passkey on one device",
-            explanation: "…and it automatically syncs to your other devices."
-          },
-          {
-            icon: "✔",
-            title: "Lost device? No problem",
-            explanation: "…your passkeys are backed up and recoverable."
-          },
-          {
-            icon: "✔",
-            title: "Works across the ecosystem",
-            explanation: "…iPhone ↔ iPad ↔ Mac, or Android ↔ Chrome on any device."
-          }
-        ],
-        useCase: "The modern passkey experience. Users don't lose access when they get a new phone — their passkeys follow them automatically.",
-        codeExample: "residentKey: \"required\", authenticatorAttachment: \"platform\""
-      },
-      userVerifyingPlatformAuthenticator: {
-        name: "User Verifying Platform Authenticator",
-        icon: "👆",
-        summary: "The device has built-in biometrics or PIN for user verification (Face ID, Touch ID, Windows Hello, fingerprint).",
-        details: [
-          {
-            icon: "✔",
-            title: "Biometric authentication available",
-            explanation: "…like Face ID, Touch ID, or fingerprint sensor."
-          },
-          {
-            icon: "✔",
-            title: "Fallback to device PIN/password",
-            explanation: "…when biometrics aren't available or fail."
-          },
-          {
-            icon: "✔",
-            title: "No external hardware required",
-            explanation: "…authentication happens entirely on this device."
-          }
-        ],
-        useCase: "The foundation for passkeys on modern devices. This is the legacy API that tells you if the device can do passwordless auth locally.",
-        codeExample: "PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()"
-      },
-      relatedOrigins: {
-        name: "Related Origins",
-        icon: "🔗",
-        summary: "Use passkeys across related domains (e.g., example.com and app.example.com) without re-registration.",
-        details: [
-          {
-            icon: "✔",
-            title: "Share credentials across subdomains",
-            explanation: "…and even across related domain names."
-          },
-          {
-            icon: "✔",
-            title: "Configure via .well-known file",
-            explanation: "…with a JSON file listing allowed origins."
-          },
-          {
-            icon: "✔",
-            title: "Seamless multi-domain experience",
-            explanation: "…users authenticate once, use everywhere."
-          }
-        ],
-        useCase: "Perfect for enterprises with multiple domains or apps that span web and native platforms but want unified authentication.",
-        codeExample: "/.well-known/webauthn → { \"origins\": [\"https://app.example.com\"] }"
-      },
-      signalAllAcceptedCredentials: {
-        name: "Signal All Accepted Credentials",
-        icon: "📋",
-        summary: "Tell the authenticator which credentials your server actually accepts, so it can clean up stale entries.",
-        details: [
-          {
-            icon: "✔",
-            title: "Server sends list of valid credential IDs",
-            explanation: "…so the authenticator knows what's still active."
-          },
-          {
-            icon: "✔",
-            title: "Authenticator can hide/remove old credentials",
-            explanation: "…keeping the user's credential list clean."
-          },
-          {
-            icon: "✔",
-            title: "Prevents confusion from stale passkeys",
-            explanation: "…users only see credentials that will actually work."
-          }
-        ],
-        useCase: "Crucial for good UX. When users delete their account or you rotate credentials server-side, this lets their device know.",
-        codeExample: "PublicKeyCredential.signalAllAcceptedCredentials({...})"
-      },
-      signalCurrentUserDetails: {
-        name: "Signal Current User Details",
-        icon: "👤",
-        summary: "Update the display name and user info stored with a passkey without re-registering.",
-        details: [
-          {
-            icon: "✔",
-            title: "User changes their display name",
-            explanation: "…update it on the passkey without re-enrollment."
-          },
-          {
-            icon: "✔",
-            title: "Fix typos or outdated info",
-            explanation: "…the passkey's metadata stays current."
-          },
-          {
-            icon: "✔",
-            title: "Better credential picker UX",
-            explanation: "…users see accurate, recognizable names."
-          }
-        ],
-        useCase: "When a user updates their profile name or email, you can push that change to their stored passkey so it displays correctly.",
-        codeExample: "PublicKeyCredential.signalCurrentUserDetails({...})"
-      },
-      signalUnknownCredential: {
-        name: "Signal Unknown Credential",
-        icon: "❓",
-        summary: "Tell the authenticator when a credential it offers is unknown to your server, enabling cleanup.",
-        details: [
-          {
-            icon: "✔",
-            title: "User tries a deleted passkey",
-            explanation: "…your server doesn't recognize it."
-          },
-          {
-            icon: "✔",
-            title: "Signal back that it's unknown",
-            explanation: "…the authenticator can mark or remove it."
-          },
-          {
-            icon: "✔",
-            title: "Self-healing credential lists",
-            explanation: "…stale passkeys automatically get cleaned up."
-          }
-        ],
-        useCase: "Handles the case where a user has a passkey their device remembers, but your server has deleted. Prevents repeated failed attempts.",
-        codeExample: "PublicKeyCredential.signalUnknownCredential({...})"
-      },
-
-      // =========================================================================
-      // WebAuthn Extensions
-      // =========================================================================
-      
-      "extension:credProps": {
-        name: "Credential Properties (credProps)",
-        icon: "📝",
-        summary: "Get information about the credential that was just created, including whether it's discoverable (resident).",
-        details: [
-          {
-            icon: "✔",
-            title: "Know if credential is discoverable",
-            explanation: "…the rk (resident key) property tells you if it's stored on the authenticator."
-          },
-          {
-            icon: "✔",
-            title: "Verify authenticator compliance",
-            explanation: "…confirm the authenticator respected your residentKey preference."
-          },
-          {
-            icon: "✔",
-            title: "Adjust your UX accordingly",
-            explanation: "…show different flows for discoverable vs. server-side credentials."
-          }
-        ],
-        useCase: "Essential when you request residentKey: 'preferred'. The authenticator might not support it, so credProps tells you what actually happened.",
-        codeExample: "extensions: { credProps: true }\n// Response: { rk: true }"
-      },
-
-      "extension:largeBlob": {
-        name: "Large Blob Storage (largeBlob)",
-        icon: "💾",
-        summary: "Store and retrieve arbitrary data (up to ~4KB) alongside a credential on the authenticator.",
-        details: [
-          {
-            icon: "✔",
-            title: "Store data with the credential",
-            explanation: "…like encryption keys, certificates, or user preferences."
-          },
-          {
-            icon: "✔",
-            title: "Data travels with the credential",
-            explanation: "…if passkeys sync, the blob syncs too."
-          },
-          {
-            icon: "✔",
-            title: "Read data during authentication",
-            explanation: "…retrieve the blob when the user signs in."
-          }
-        ],
-        useCase: "Advanced use case: store a wrapped encryption key so users can decrypt data on any device where their passkey syncs. Also useful for offline-first apps.",
-        codeExample: "extensions: { largeBlob: { write: new Uint8Array([...]) } }\n// Or read: { largeBlob: { read: true } }"
-      },
-
-      "extension:prf": {
-        name: "Pseudo-Random Function (PRF)",
-        icon: "🎲",
-        summary: "Derive deterministic secret keys from a credential — the same input always produces the same output.",
-        details: [
-          {
-            icon: "✔",
-            title: "Generate encryption keys",
-            explanation: "…derive keys for encrypting user data client-side."
-          },
-          {
-            icon: "✔",
-            title: "Deterministic output",
-            explanation: "…same credential + same input = same derived key, every time."
-          },
-          {
-            icon: "✔",
-            title: "No server storage needed",
-            explanation: "…the key is derived on-demand, never stored."
-          }
-        ],
-        useCase: "End-to-end encryption without key escrow. Derive encryption keys from the passkey itself — if the passkey syncs, the encryption capability follows.",
-        codeExample: "extensions: {\n  prf: { eval: { first: new Uint8Array(32) } }\n}"
-      },
-
-      "extension:minPinLength": {
-        name: "Minimum PIN Length (minPinLength)",
-        icon: "🔢",
-        summary: "Request authenticators enforce a minimum PIN length for added security.",
-        details: [
-          {
-            icon: "✔",
-            title: "Enforce PIN complexity",
-            explanation: "…require PINs of at least N characters."
-          },
-          {
-            icon: "✔",
-            title: "Query current PIN length policy",
-            explanation: "…check what minimum the authenticator currently enforces."
-          },
-          {
-            icon: "✔",
-            title: "Meet compliance requirements",
-            explanation: "…satisfy enterprise security policies."
-          }
-        ],
-        useCase: "Enterprise deployments where security policies require PINs of a certain length. Useful for FIDO2 security key rollouts.",
-        codeExample: "extensions: { minPinLength: true }"
-      },
-
-      "extension:credProtect": {
-        name: "Credential Protection (credProtect)",
-        icon: "🛡️",
-        summary: "Control when and how a credential can be used — restrict to user verification or specific use cases.",
-        details: [
-          {
-            icon: "✔",
-            title: "Level 1: userVerificationOptional",
-            explanation: "…credential usable with or without UV (default)."
-          },
-          {
-            icon: "✔",
-            title: "Level 2: userVerificationOptionalWithCredentialIDList",
-            explanation: "…discoverable only if credential ID is provided."
-          },
-          {
-            icon: "✔",
-            title: "Level 3: userVerificationRequired",
-            explanation: "…credential ONLY works with user verification."
-          }
-        ],
-        useCase: "High-security scenarios where you want to ensure the credential can't be used without biometric/PIN verification, even if the RP doesn't request it.",
-        codeExample: "extensions: {\n  credentialProtectionPolicy: \"userVerificationRequired\",\n  enforceCredentialProtectionPolicy: true\n}"
-      },
-
-      "extension:appid": {
-        name: "App ID (U2F Compatibility)",
-        icon: "🔄",
-        summary: "Allow WebAuthn to authenticate with credentials originally registered via the legacy U2F API.",
-        details: [
-          {
-            icon: "✔",
-            title: "Migrate from U2F to WebAuthn",
-            explanation: "…existing U2F credentials keep working."
-          },
-          {
-            icon: "✔",
-            title: "Specify the original App ID",
-            explanation: "…the U2F appId used during registration."
-          },
-          {
-            icon: "✔",
-            title: "Gradual migration path",
-            explanation: "…no need to re-register all users at once."
-          }
-        ],
-        useCase: "If you previously used U2F (chrome.runtime.sendMessage or the u2f-api.js polyfill), use appid to let those old credentials work with WebAuthn.",
-        codeExample: "extensions: { appid: \"https://example.com\" }"
-      },
-
-      "extension:appidExclude": {
-        name: "App ID Exclude",
-        icon: "🚫",
-        summary: "Prevent registration if the user already has a U2F credential for the specified App ID.",
-        details: [
-          {
-            icon: "✔",
-            title: "Check for existing U2F credentials",
-            explanation: "…during WebAuthn registration."
-          },
-          {
-            icon: "✔",
-            title: "Avoid duplicate registrations",
-            explanation: "…user can't register same authenticator twice."
-          },
-          {
-            icon: "✔",
-            title: "Clean migration from U2F",
-            explanation: "…prevents confusion during transition."
-          }
-        ],
-        useCase: "During U2F → WebAuthn migration, exclude authenticators that already have U2F credentials to prevent duplicate entries.",
-        codeExample: "extensions: { appidExclude: \"https://example.com\" }"
-      },
-
-      "extension:uvm": {
-        name: "User Verification Method (uvm)",
-        icon: "🔍",
-        summary: "Learn which method the user used to verify their identity — fingerprint, face, PIN, etc.",
-        details: [
-          {
-            icon: "✔",
-            title: "Know how the user authenticated",
-            explanation: "…fingerprint, face recognition, PIN, or presence."
-          },
-          {
-            icon: "✔",
-            title: "Audit and compliance logging",
-            explanation: "…record the verification method for security audits."
-          },
-          {
-            icon: "✔",
-            title: "Adaptive security decisions",
-            explanation: "…require stronger UV for sensitive operations."
-          }
-        ],
-        useCase: "Security auditing and compliance. Know if the user used a biometric (stronger) vs. PIN (weaker) so you can make risk-based decisions.",
-        codeExample: "extensions: { uvm: true }\n// Response: [[0x02, 0x04, 0x02]] → fingerprint"
-      },
-
-      "extension:devicePubKey": {
-        name: "Device Public Key (devicePubKey)",
-        icon: "🔐",
-        summary: "Get a device-bound key in addition to the credential, enabling device binding for synced passkeys.",
-        details: [
-          {
-            icon: "✔",
-            title: "Separate device-bound key",
-            explanation: "…doesn't sync, stays on this specific device."
-          },
-          {
-            icon: "✔",
-            title: "Detect new devices",
-            explanation: "…know when a synced passkey is used from a new device."
-          },
-          {
-            icon: "✔",
-            title: "Step-up authentication trigger",
-            explanation: "…prompt additional verification for unknown devices."
-          }
-        ],
-        useCase: "Banks and high-security apps: even with synced passkeys, detect when authentication comes from a new device and trigger additional verification.",
-        codeExample: "extensions: { devicePubKey: { attestation: \"direct\" } }"
-      },
-
-      "extension:payment": {
-        name: "Secure Payment Confirmation (SPC)",
-        icon: "💳",
-        summary: "Streamlined payment authentication that shows transaction details in the WebAuthn prompt.",
-        details: [
-          {
-            icon: "✔",
-            title: "Display transaction details",
-            explanation: "…amount, merchant, currency shown in browser UI."
-          },
-          {
-            icon: "✔",
-            title: "User confirms with biometric",
-            explanation: "…one gesture to authenticate and confirm payment."
-          },
-          {
-            icon: "✔",
-            title: "Cryptographic proof of consent",
-            explanation: "…the signature covers the transaction details."
-          }
-        ],
-        useCase: "Online checkout flows. Replace SMS OTP or card CVV with a single biometric confirmation that proves the user saw and approved the exact transaction.",
-        codeExample: "const payment = new PaymentRequest([{\n  supportedMethods: \"secure-payment-confirmation\",\n  data: { credentialIds, challenge, ... }\n}], details);"
-      }
-    };
-
-    // =========================================================================
-    // Utility Functions
-    // =========================================================================
-    function setDotState(el, state) {
-      el.classList.remove("ok", "no", "maybe");
-      el.classList.add(state === "ok" ? "ok" : state === "no" ? "no" : "maybe");
-    }
-
-    function setBadgeState(badge, textEl, state, text) {
-      badge.classList.remove("ok", "warn", "error");
-      badge.classList.add(state);
-      textEl.textContent = text;
-    }
-
-    function detectBrowser() {
-      const ua = navigator.userAgent;
-      let browser = "Unknown", version = "", os = "Unknown";
-
-      if (ua.includes("Windows")) os = "Windows";
-      else if (ua.includes("Mac OS X")) os = "macOS";
-      else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
-      else if (ua.includes("Android")) os = "Android";
-      else if (ua.includes("Linux")) os = "Linux";
-      else if (ua.includes("CrOS")) os = "ChromeOS";
-
-      if (ua.includes("Firefox/")) { browser = "Firefox"; version = ua.match(/Firefox\/(\d+)/)?.[1] || ""; }
-      else if (ua.includes("Edg/")) { browser = "Edge"; version = ua.match(/Edg\/(\d+)/)?.[1] || ""; }
-      else if (ua.includes("Chrome/")) { browser = "Chrome"; version = ua.match(/Chrome\/(\d+)/)?.[1] || ""; }
-      else if (ua.includes("Safari/") && !ua.includes("Chrome")) { browser = "Safari"; version = ua.match(/Version\/(\d+)/)?.[1] || ""; }
-
-      return { browser, version, os, ua };
-    }
-
-    // =========================================================================
-    // Navigation
-    // =========================================================================
-    document.querySelectorAll(".nav-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
-        document.querySelectorAll(".check-section").forEach(s => s.classList.remove("active"));
-        tab.classList.add("active");
-        document.getElementById(`section-${tab.dataset.section}`).classList.add("active");
-      });
-    });
-
-    // =========================================================================
-    // Environment Detection
-    // =========================================================================
-    async function updateEnvironment() {
-      const { browser, version, os } = detectBrowser();
-      const hasPKC = typeof PublicKeyCredential !== "undefined";
-      const hasGCC = hasPKC && typeof PublicKeyCredential.getClientCapabilities === "function";
-
-      browserPill.textContent = `${browser} ${version} on ${os}`;
-
-      pkcText.textContent = hasPKC ? "Available" : "Not available";
-      setDotState(pkcIndicator, hasPKC ? "ok" : "no");
-
-      gccText.textContent = hasGCC ? "Available" : "Not implemented";
-      setDotState(gccIndicator, hasGCC ? "ok" : "no");
-
-      if (!hasPKC) {
-        envText.textContent = "No WebAuthn";
-        envPill.style.borderColor = "#ef4444";
-      } else if (!hasGCC) {
-        envText.textContent = "WebAuthn OK, L3 partial";
-        envPill.style.borderColor = "#eab308";
-      } else {
-        envText.textContent = "Full L3 Support";
-        envPill.style.borderColor = "#22c55e";
-      }
-
-      // UVPAA
-      if (hasPKC && typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === "function") {
-        try {
-          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-          uvpaaText.textContent = available ? "Available" : "Not available";
-            setDotState(uvpaaIndicator, available ? "ok" : "no");
-        } catch { uvpaaText.textContent = "Error"; setDotState(uvpaaIndicator, "maybe"); }
-      } else {
-        uvpaaText.textContent = "Not implemented";
-        setDotState(uvpaaIndicator, "no");
-      }
-
-      // Conditional UI
-      if (hasPKC && typeof PublicKeyCredential.isConditionalMediationAvailable === "function") {
-        try {
-          const available = await PublicKeyCredential.isConditionalMediationAvailable();
-          conditionalText.textContent = available ? "Available" : "Not available";
-          setDotState(conditionalIndicator, available ? "ok" : "no");
-        } catch { conditionalText.textContent = "Error"; setDotState(conditionalIndicator, "maybe"); }
-      } else {
-        conditionalText.textContent = "Not implemented";
-        setDotState(conditionalIndicator, "no");
-      }
-    }
-
-    // =========================================================================
-    // Capabilities Section
-    // =========================================================================
-    function renderCapabilities(caps) {
-      capabilitiesList.innerHTML = "";
-      let supported = 0, unsupported = 0, unknown = 0;
-
-      Object.keys(caps).forEach((key, i) => {
-        const value = caps[key];
-        const info = CAPABILITY_INFO[key] || { 
-          name: key, 
-          icon: "📌",
-          summary: `Capability: ${key}`,
-          details: [],
-          useCase: "",
-          codeExample: ""
-        };
-
-        if (value === true) supported++;
-        else if (value === false) unsupported++;
-        else unknown++;
-
-        const item = document.createElement("div");
-        item.className = "check-item animated";
-        item.style.animationDelay = `${i * 0.04}s`;
-
-        const statusClass = value === true ? "supported" : value === false ? "not-supported" : "unknown";
-        const statusLabel = value === true ? "✓ Supported" : value === false ? "✗ Not Supported" : "? Unknown";
-        const dotClass = value === true ? "ok" : value === false ? "no" : "maybe";
-
-        // Build details HTML
-        let detailsHTML = "";
-        if (info.details && info.details.length > 0) {
-          detailsHTML = info.details.map(d => `
-            <div class="detail-point">
-              <span class="detail-icon">${d.icon}</span>
-              <div class="detail-content">
-                <div class="detail-title">${d.title}</div>
-                <div class="detail-explanation">${d.explanation}</div>
-              </div>
-            </div>
-          `).join("");
-        }
-
-        // Build use case HTML
-        let useCaseHTML = "";
-        if (info.useCase) {
-          useCaseHTML = `
-            <div class="use-case-box">
-              <div class="use-case-title">💡 When to use</div>
-              <div class="use-case-text">${info.useCase}</div>
-            </div>
-          `;
-        }
-
-        // Build code example HTML
-        let codeHTML = "";
-        if (info.codeExample) {
-          codeHTML = `<div class="code-example">${info.codeExample}</div>`;
-        }
-
-        item.innerHTML = `
-          <div class="check-item-header">
-            <span class="check-item-name">
-              <span class="dot-indicator ${dotClass}"></span>
-              <span>${info.icon || ""} ${info.name}</span>
-            </span>
-            <span class="check-item-status ${statusClass}">${statusLabel}</span>
-          </div>
-          <div class="check-item-summary">${info.summary}</div>
-          ${(info.details && info.details.length > 0) ? `
-            <div class="check-item-toggle" onclick="this.parentElement.classList.toggle('expanded')">
-              <span>▶</span>
-              <span class="toggle-text">Learn more</span>
-              <span class="toggle-text-collapse">Show less</span>
-            </div>
-            <div class="check-item-details">
-              ${detailsHTML}
-              ${useCaseHTML}
-              ${codeHTML}
-            </div>
-          ` : ''}
-        `;
-        capabilitiesList.appendChild(item);
-      });
-
-      capSummaryStats.style.display = "flex";
-      capStatSupported.textContent = supported;
-      capStatUnsupported.textContent = unsupported;
-      capStatUnknown.textContent = unknown;
-
-      if (Object.keys(caps).length === 0) {
-        capabilitiesList.innerHTML = `<div class="check-item" style="opacity:0.6"><div class="check-item-description">Empty capabilities object returned.</div></div>`;
-      }
-    }
-
-    async function runCapabilitiesCheck() {
-      if (typeof PublicKeyCredential === "undefined") {
-        setBadgeState(capStatusBadge, capStatusText, "error", "No WebAuthn");
-        capLog.textContent = JSON.stringify({ error: "PublicKeyCredential not available" }, null, 2);
-        return;
-      }
-
-      if (typeof PublicKeyCredential.getClientCapabilities !== "function") {
-        setBadgeState(capStatusBadge, capStatusText, "error", "API missing");
-        capLog.textContent = JSON.stringify({
-          error: "getClientCapabilities() not implemented",
-          hint: "Try Chrome 128+, Safari 18+, or recent Edge"
-        }, null, 2);
-        return;
-      }
-
-      runCapabilitiesBtn.disabled = true;
-      runCapabilitiesBtn.innerHTML = "<span class='loading'>⏳</span><span>Running…</span>";
-      setBadgeState(capStatusBadge, capStatusText, "warn", "Detecting…");
-
-      try {
-        const caps = await PublicKeyCredential.getClientCapabilities();
-        capLog.textContent = JSON.stringify(caps, null, 2);
-        capLogLabel.textContent = "Capabilities result";
-        capLogMeta.textContent = new Date().toLocaleTimeString();
-
-        renderCapabilities(caps);
-
-        const total = Object.keys(caps).length;
-        const supported = Object.values(caps).filter(v => v === true).length;
-        setBadgeState(capStatusBadge, capStatusText, "ok", `${supported}/${total} supported`);
-        copyCapabilitiesBtn.disabled = false;
-      } catch (err) {
-        setBadgeState(capStatusBadge, capStatusText, "error", "Error");
-        capLog.textContent = JSON.stringify({ error: err.message, name: err.name }, null, 2);
-      } finally {
-        runCapabilitiesBtn.disabled = false;
-        runCapabilitiesBtn.innerHTML = "<span>▶</span><span>Run Check</span>";
-      }
-    }
-
-    async function copyCapabilitiesJSON() {
-      try {
-        await navigator.clipboard.writeText(capLog.textContent);
-        copyCapabilitiesBtn.innerHTML = "<span>✓</span><span>Copied!</span>";
-        setTimeout(() => { copyCapabilitiesBtn.innerHTML = "<span>⧉</span><span>Copy JSON</span>"; }, 1200);
-      } catch {
-        copyCapabilitiesBtn.innerHTML = "<span>✗</span><span>Failed</span>";
-        setTimeout(() => { copyCapabilitiesBtn.innerHTML = "<span>⧉</span><span>Copy JSON</span>"; }, 1200);
-      }
-    }
-
-    runCapabilitiesBtn.addEventListener("click", runCapabilitiesCheck);
-    copyCapabilitiesBtn.addEventListener("click", copyCapabilitiesJSON);
-
-    // =========================================================================
-    // Hints Section
-    // =========================================================================
-    let selectedHints = [];
-
-    hintOptions.querySelectorAll(".hint-option").forEach(option => {
-      option.addEventListener("click", () => {
-        const hint = option.dataset.hint;
-        const input = option.querySelector("input");
-
-        if (selectedHints.includes(hint)) {
-          selectedHints = selectedHints.filter(h => h !== hint);
-          option.classList.remove("selected");
-          input.checked = false;
-        } else {
-          selectedHints.push(hint);
-          option.classList.add("selected");
-          input.checked = true;
-        }
-
-        updateHintCode();
-      });
-    });
-
-    function updateHintCode() {
-      if (selectedHints.length === 0) {
-        hintCode.textContent = "hints: []";
-        } else {
-        hintCode.textContent = `hints: [${selectedHints.map(h => `"${h}"`).join(", ")}]`;
-      }
-    }
-
-    function showHintTestResult(success, message, details = null) {
-      hintTestResult.style.display = "block";
-      hintTestResultContent.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <span class="dot-indicator ${success ? 'ok' : 'no'}"></span>
-          <strong style="color: ${success ? 'var(--success)' : 'var(--danger)'}">
-            ${success ? 'Success' : 'Error / Cancelled'}
-          </strong>
-        </div>
-        <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">${message}</p>
-        ${details ? `<pre style="margin: 8px 0 0; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.75rem; overflow: auto;">${details}</pre>` : ''}
-      `;
-    }
-
-    async function testHintsWithCreate() {
-      if (typeof PublicKeyCredential === "undefined") {
-        showHintTestResult(false, "WebAuthn is not available on this platform.");
-        return;
-      }
-
-      testHintsCreateBtn.disabled = true;
-      testHintsCreateBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
-
-      // Generate random values for the test
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
-      const userId = new Uint8Array(16);
-      crypto.getRandomValues(userId);
-
-      const createOptions = {
-        publicKey: {
-          challenge: challenge,
-          rp: {
-            name: "WebAuthn Explorer Test",
-            id: window.location.hostname
-          },
-          user: {
-            id: userId,
-            name: "test@example.com",
-            displayName: "Test User"
-          },
-          pubKeyCredParams: [
-            { type: "public-key", alg: -7 },   // ES256
-            { type: "public-key", alg: -257 }  // RS256
-          ],
-          authenticatorSelection: {
-            userVerification: "preferred"
-          },
-          timeout: 60000,
-          hints: selectedHints.length > 0 ? selectedHints : undefined
-        }
-      };
-
-      try {
-        const credential = await navigator.credentials.create(createOptions);
-        showHintTestResult(
-          true,
-          `Credential created successfully with hints: [${selectedHints.join(", ") || "none"}]`,
-          `Credential ID: ${btoa(String.fromCharCode(...new Uint8Array(credential.rawId))).slice(0, 40)}...`
-        );
-      } catch (err) {
-        showHintTestResult(
-          false,
-          `${err.name}: ${err.message}`,
-          `Hints used: [${selectedHints.join(", ") || "none"}]`
-        );
-      } finally {
-        testHintsCreateBtn.disabled = false;
-        testHintsCreateBtn.innerHTML = "<span>✨</span><span>Test with Create</span>";
-      }
-    }
-
-    async function testHintsWithGet() {
-      if (typeof PublicKeyCredential === "undefined") {
-        showHintTestResult(false, "WebAuthn is not available on this platform.");
-        return;
-      }
-
-      testHintsGetBtn.disabled = true;
-      testHintsGetBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
-
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
-
-      const getOptions = {
-        publicKey: {
-          challenge: challenge,
-          rpId: window.location.hostname,
-          userVerification: "preferred",
-          timeout: 60000,
-          hints: selectedHints.length > 0 ? selectedHints : undefined
-        }
-      };
-
-      try {
-        const assertion = await navigator.credentials.get(getOptions);
-        showHintTestResult(
-          true,
-          `Authentication successful with hints: [${selectedHints.join(", ") || "none"}]`,
-          `Credential ID: ${btoa(String.fromCharCode(...new Uint8Array(assertion.rawId))).slice(0, 40)}...`
-        );
-      } catch (err) {
-        showHintTestResult(
-          false,
-          `${err.name}: ${err.message}`,
-          `Hints used: [${selectedHints.join(", ") || "none"}]\n\nNote: "Get" requires an existing credential for this origin.`
-        );
-      } finally {
-        testHintsGetBtn.disabled = false;
-        testHintsGetBtn.innerHTML = "<span>🔓</span><span>Test with Get</span>";
-      }
-    }
-
-    testHintsCreateBtn.addEventListener("click", testHintsWithCreate);
-    testHintsGetBtn.addEventListener("click", testHintsWithGet);
-
-    // =========================================================================
-    // Extension Support Testing
-    // =========================================================================
-    const testExtensionsBtn = document.getElementById("testExtensionsBtn");
-    const extensionResults = document.getElementById("extensionResults");
-    const extensionRawResults = document.getElementById("extensionRawResults");
-    const extensionResultsLog = document.getElementById("extensionResultsLog");
-    const extTestBadge = document.getElementById("extTestBadge");
-    const extTestStatus = document.getElementById("extTestStatus");
-
-    // Extensions to test during credential creation
-    const EXTENSIONS_TO_TEST = [
-      {
-        key: "credProps",
-        name: "credProps",
-        icon: "📝",
-        description: "Credential properties (discoverable check)",
-        createOptions: { credProps: true },
-        checkResult: (result) => result?.credProps !== undefined
-      },
-      {
-        key: "largeBlob",
-        name: "largeBlob",
-        icon: "💾",
-        description: "Large blob storage support check",
-        createOptions: { largeBlob: { support: "preferred" } },
-        checkResult: (result) => result?.largeBlob !== undefined
-      },
-      {
-        key: "prf",
-        name: "prf",
-        icon: "🎲",
-        description: "Pseudo-random function for key derivation",
-        createOptions: { prf: { } },
-        checkResult: (result) => result?.prf !== undefined
-      },
-      {
-        key: "minPinLength",
-        name: "minPinLength",
-        icon: "🔢",
-        description: "Minimum PIN length policy",
-        createOptions: { minPinLength: true },
-        checkResult: (result) => result?.minPinLength !== undefined
-      },
-      {
-        key: "credProtect",
-        name: "credProtect",
-        icon: "🛡️",
-        description: "Credential protection level",
-        createOptions: { credentialProtectionPolicy: "userVerificationOptional" },
-        checkResult: (result) => result?.credProtect !== undefined
-      },
-      {
-        key: "hmacCreateSecret",
-        name: "hmac-secret",
-        icon: "🔐",
-        description: "HMAC secret extension (CTAP2)",
-        createOptions: { hmacCreateSecret: true },
-        checkResult: (result) => result?.hmacCreateSecret !== undefined
-      }
-    ];
-
-    function setExtBadgeState(state, text) {
-      extTestBadge.classList.remove("ok", "warn", "error");
-      extTestBadge.classList.add(state);
-      extTestStatus.textContent = text;
-    }
-
-    function renderExtensionResults(results, rawResult) {
-      extensionResults.innerHTML = "";
-      
-      let supported = 0;
-      let unsupported = 0;
-
-      results.forEach((ext, i) => {
-        if (ext.supported) supported++;
-        else unsupported++;
-
-        const item = document.createElement("div");
-        item.className = "check-item animated";
-        item.style.animationDelay = `${i * 0.05}s`;
-
-        const dotClass = ext.supported ? "ok" : "no";
-        const statusClass = ext.supported ? "supported" : "not-supported";
-        const statusLabel = ext.supported ? "✓ Supported" : "✗ Not detected";
-
-        let resultDetail = "";
-        if (ext.supported && ext.resultData) {
-          resultDetail = `<div class="code-example" style="margin-top: 8px; font-size: 0.7rem;">${JSON.stringify(ext.resultData, null, 2)}</div>`;
-        }
-
-        item.innerHTML = `
-          <div class="check-item-header">
-            <span class="check-item-name">
-              <span class="dot-indicator ${dotClass}"></span>
-              <span>${ext.icon} ${ext.name}</span>
-            </span>
-            <span class="check-item-status ${statusClass}">${statusLabel}</span>
-          </div>
-          <div class="check-item-summary">${ext.description}</div>
-          ${resultDetail}
-        `;
-        extensionResults.appendChild(item);
-      });
-
-      // Show raw results
-      extensionRawResults.style.display = "block";
-      extensionResultsLog.textContent = JSON.stringify(rawResult, null, 2);
-
-      // Update badge
-      if (supported > 0) {
-        setExtBadgeState("ok", `${supported}/${results.length} supported`);
-      } else {
-        setExtBadgeState("warn", "Limited support");
-      }
-    }
-
-    async function testExtensionSupport() {
-      if (typeof PublicKeyCredential === "undefined") {
-        setExtBadgeState("error", "No WebAuthn");
-        extensionResults.innerHTML = `<div class="check-item"><div class="check-item-description" style="color: var(--danger);">WebAuthn is not available on this platform.</div></div>`;
-        return;
-      }
-
-      testExtensionsBtn.disabled = true;
-      testExtensionsBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
-      setExtBadgeState("warn", "Testing…");
-
-      // Build combined extensions object
-      const allExtensions = {};
-      EXTENSIONS_TO_TEST.forEach(ext => {
-        Object.assign(allExtensions, ext.createOptions);
-      });
-
-      // Generate random values
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
-      const userId = new Uint8Array(16);
-      crypto.getRandomValues(userId);
-
-      const createOptions = {
-        publicKey: {
-          challenge: challenge,
-          rp: {
-            name: "WebAuthn Explorer - Extension Test",
-            id: window.location.hostname
-          },
-          user: {
-            id: userId,
-            name: "extension-test@example.com",
-            displayName: "Extension Test User"
-          },
-          pubKeyCredParams: [
-            { type: "public-key", alg: -7 },   // ES256
-            { type: "public-key", alg: -257 }  // RS256
-          ],
-          authenticatorSelection: {
-            residentKey: "preferred",
-            userVerification: "preferred"
-          },
-          timeout: 120000,
-          extensions: allExtensions
-        }
-      };
-
-      try {
-        const credential = await navigator.credentials.create(createOptions);
-        const extensionResults = credential.getClientExtensionResults();
-
-        // Check each extension
-        const results = EXTENSIONS_TO_TEST.map(ext => {
-          const supported = ext.checkResult(extensionResults);
-          return {
-            ...ext,
-            supported: supported,
-            resultData: supported ? extensionResults[ext.key] : null
-          };
-        });
-
-        renderExtensionResults(results, extensionResults);
-
-      } catch (err) {
-        console.error("Extension test error:", err);
-        
-        if (err.name === "NotAllowedError") {
-          setExtBadgeState("warn", "Cancelled");
-          extensionResults.innerHTML = `
-            <div class="check-item">
-              <div class="check-item-description">
-                <strong>Test cancelled.</strong> You need to complete the WebAuthn prompt to test extension support.
-              </div>
-            </div>
-          `;
-        } else {
-          setExtBadgeState("error", "Error");
-          extensionResults.innerHTML = `
-            <div class="check-item">
-              <div class="check-item-description" style="color: var(--danger);">
-                <strong>${err.name}:</strong> ${err.message}
-              </div>
-            </div>
-          `;
-        }
-        extensionRawResults.style.display = "block";
-        extensionResultsLog.textContent = JSON.stringify({ error: err.message, name: err.name }, null, 2);
-      } finally {
-        testExtensionsBtn.disabled = false;
-        testExtensionsBtn.innerHTML = "<span>🧪</span><span>Test Extension Support</span>";
-      }
-    }
-
-    testExtensionsBtn.addEventListener("click", testExtensionSupport);
-
-    // =========================================================================
-    // Initialize
-    // =========================================================================
-    updateEnvironment();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
