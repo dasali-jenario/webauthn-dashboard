@@ -167,15 +167,41 @@
             </div>
           </div>
 
-          <!-- Right: Raw JSON -->
+          <!-- Right: Code & Raw JSON -->
           <div class="card">
             <div class="card-inner">
               <div class="card-header">
                 <div>
-                  <div class="card-title">Raw JSON Output</div>
-                  <div class="card-subtitle">Direct API response</div>
+                  <div class="card-title">📝 Implementation</div>
+                  <div class="card-subtitle">Code example and API response</div>
                 </div>
               </div>
+
+              <!-- JavaScript Code Example -->
+              <div class="section-label" style="margin-bottom: 8px;">JavaScript Code</div>
+              <div class="code-example" style="margin-bottom: 16px;">// Check if getClientCapabilities() is available
+if (typeof PublicKeyCredential.getClientCapabilities === 'function') {
+  // Get all supported capabilities
+  const capabilities = await PublicKeyCredential.getClientCapabilities();
+  
+  // Example capabilities object:
+  // {
+  //   "conditionalCreate": true,
+  //   "conditionalGet": true,
+  //   "hybridTransport": true,
+  //   "passkeyPlatformAuthenticator": true,
+  //   "userVerifyingPlatformAuthenticator": true,
+  //   "relatedOrigins": false,
+  //   "signalAllAcceptedCredentials": true,
+  //   "signalCurrentUserDetails": true,
+  //   "signalUnknownCredential": true
+  // }
+  
+  console.log(capabilities);
+}</div>
+
+              <!-- Raw JSON Output -->
+              <div class="section-label" style="margin-bottom: 8px;">Raw JSON Output</div>
               <div class="log-container">
                 <div class="log-header">
                   <span id="capLogLabel">Result appears after running check</span>
