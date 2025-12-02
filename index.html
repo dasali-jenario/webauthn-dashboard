@@ -179,25 +179,19 @@
 
               <!-- JavaScript Code Example -->
               <div class="section-label" style="margin-bottom: 8px;">JavaScript Code</div>
-              <div class="code-example" style="margin-bottom: 16px;">// Check if getClientCapabilities() is available
-if (typeof PublicKeyCredential.getClientCapabilities === 'function') {
-  // Get all supported capabilities
-  const capabilities = await PublicKeyCredential.getClientCapabilities();
+              <div class="code-example" style="margin-bottom: 16px;">if (window.PublicKeyCredential &&
+    typeof PublicKeyCredential.getClientCapabilities === "function") {
   
-  // Example capabilities object:
-  // {
-  //   "conditionalCreate": true,
-  //   "conditionalGet": true,
-  //   "hybridTransport": true,
-  //   "passkeyPlatformAuthenticator": true,
-  //   "userVerifyingPlatformAuthenticator": true,
-  //   "relatedOrigins": false,
-  //   "signalAllAcceptedCredentials": true,
-  //   "signalCurrentUserDetails": true,
-  //   "signalUnknownCredential": true
-  // }
-  
-  console.log(capabilities);
+  PublicKeyCredential.getClientCapabilities()
+    .then(capabilities => {
+      console.log("Client capabilities:", capabilities);
+    })
+    .catch(err => {
+      console.error("Error retrieving capabilities:", err);
+    });
+
+} else {
+  console.log("Client Capabilities API not supported in this browser.");
 }</div>
 
               <!-- Raw JSON Output -->
