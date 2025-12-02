@@ -647,14 +647,55 @@ function detectBrowser() {
 // Navigation
 // ==========================================================================
 function initNavigation() {
-  document.querySelectorAll(".nav-tab").forEach(tab => {
+  const navTabs = document.querySelectorAll(".nav-tab");
+  const sections = document.querySelectorAll(".check-section");
+  
+  // Navigate to a specific section
+  function navigateToSection(sectionId, updateHash = true) {
+    const targetTab = document.querySelector(`.nav-tab[data-section="${sectionId}"]`);
+    const targetSection = document.getElementById(`section-${sectionId}`);
+    
+    if (!targetTab || !targetSection) return false;
+    
+    // Update active states
+    navTabs.forEach(t => t.classList.remove("active"));
+    sections.forEach(s => s.classList.remove("active"));
+    targetTab.classList.add("active");
+    targetSection.classList.add("active");
+    
+    // Update URL hash (without triggering hashchange event loop)
+    if (updateHash && window.location.hash !== `#${sectionId}`) {
+      history.pushState(null, '', `#${sectionId}`);
+    }
+    
+    return true;
+  }
+  
+  // Handle tab clicks
+  navTabs.forEach(tab => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".check-section").forEach(s => s.classList.remove("active"));
-      tab.classList.add("active");
-      document.getElementById(`section-${tab.dataset.section}`).classList.add("active");
+      navigateToSection(tab.dataset.section);
     });
   });
+  
+  // Handle browser back/forward navigation
+  window.addEventListener("hashchange", () => {
+    const hash = window.location.hash.slice(1); // Remove the # symbol
+    if (hash) {
+      navigateToSection(hash, false);
+    }
+  });
+  
+  // On initial load, check for hash in URL
+  const initialHash = window.location.hash.slice(1);
+  if (initialHash) {
+    // Navigate to the section specified in the URL
+    const success = navigateToSection(initialHash, false);
+    if (!success) {
+      // Invalid hash, default to capabilities
+      navigateToSection('capabilities', true);
+    }
+  }
 }
 
 // ==========================================================================
