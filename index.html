@@ -2808,11 +2808,84 @@ if (PublicKeyCredential.signalCurrentUserDetails) {
 
               <!-- Live Testing Section (shown after detection) -->
               <div id="signalLiveTestSection" style="display: none; margin-top: 20px;">
-                <div class="section-label">🧪 Live Method Testing</div>
+                <div class="section-label">🔑 Test Credential Manager</div>
+                
+                <div class="info-box" style="margin-top: 8px;">
+                  <strong>How Real Testing Works:</strong><br>
+                  Create a test passkey first, then use its real credential ID and user ID to test Signal API methods. This lets you see Google Password Manager actually respond to signals.
+                </div>
+
+                <!-- Create Test Passkey -->
+                <div class="check-item" style="margin-top: 12px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>✨</span>
+                      <span>Step 1: Create Test Passkey</span>
+                    </span>
+                  </div>
+                  <div class="check-item-summary">
+                    Create a passkey for this origin. The credential ID and user ID will be stored for Signal API testing.
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
+                    <input type="text" id="signalTestUsername" placeholder="test@example.com" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: var(--text); font-size: 0.85rem;">
+                    <button id="createSignalTestPasskeyBtn" class="primary">
+                      <span>✨</span>
+                      <span>Create Passkey</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Stored Credentials -->
+                <div class="check-item" style="margin-top: 12px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🗂️</span>
+                      <span>Stored Test Credentials</span>
+                    </span>
+                    <span id="storedCredentialCount" class="check-item-status unknown">0 stored</span>
+                  </div>
+                  <div id="storedCredentialsList" class="check-item-summary" style="font-family: var(--font-mono); font-size: 0.75rem;">
+                    No credentials stored yet. Create a passkey above to begin testing.
+                  </div>
+                  <button id="clearStoredCredentialsBtn" class="secondary" style="margin-top: 8px; display: none;">
+                    <span>🗑️</span>
+                    <span>Clear All</span>
+                  </button>
+                </div>
+
+                <div class="section-label" style="margin-top: 20px;">🧪 Signal API Tests</div>
                 
                 <div class="info-box warning" style="margin-top: 8px;">
-                  <strong>⚠️ Testing Note:</strong><br>
-                  These tests call real Signal API methods. The passkey provider (Google Password Manager, etc.) may show dialogs or modify stored passkeys. Use test credential IDs that don't match real passkeys.
+                  <strong>⚠️ Real Passkey Impact:</strong><br>
+                  When using stored credentials, these tests will actually affect your passkeys in Google Password Manager! You may see dialogs, and passkey metadata may be updated or removed.
+                </div>
+
+                <!-- Test Mode Toggle -->
+                <div class="check-item" style="margin-top: 12px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🎯</span>
+                      <span>Test Mode</span>
+                    </span>
+                  </div>
+                  <div style="display: flex; gap: 12px; margin-top: 8px;">
+                    <label class="hint-option selected" data-mode="fake" style="flex: 1; cursor: pointer;">
+                      <input type="radio" name="signalTestMode" value="fake" checked style="display: none;">
+                      <span class="hint-checkbox">✓</span>
+                      <div class="hint-label">
+                        <span class="hint-label-name">🎭 Fake IDs (Safe)</span>
+                        <span class="hint-label-desc">Random IDs, no real impact</span>
+                      </div>
+                    </label>
+                    <label class="hint-option" data-mode="real" style="flex: 1; cursor: pointer;">
+                      <input type="radio" name="signalTestMode" value="real" style="display: none;">
+                      <span class="hint-checkbox">✓</span>
+                      <div class="hint-label">
+                        <span class="hint-label-name">🔑 Real IDs (Live)</span>
+                        <span class="hint-label-desc">Uses stored credential</span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 <!-- signalUnknownCredential Test -->
@@ -2825,7 +2898,7 @@ if (PublicKeyCredential.signalCurrentUserDetails) {
                     <span id="signalUnknownBadge" class="check-item-status unknown">Not tested</span>
                   </div>
                   <div class="check-item-summary">
-                    Signal a fake credential ID to test if the API works. Uses a random test ID that won't affect real passkeys.
+                    <span id="signalUnknownDesc">Signal a fake credential ID to test if the API works.</span>
                   </div>
                   <button id="testSignalUnknownBtn" class="secondary" style="margin-top: 8px;" disabled>
                     <span>▶</span>
@@ -2844,7 +2917,7 @@ if (PublicKeyCredential.signalCurrentUserDetails) {
                     <span id="signalAllAcceptedBadge" class="check-item-status unknown">Not tested</span>
                   </div>
                   <div class="check-item-summary">
-                    Signal an empty credential list with a test user ID. This won't affect real passkeys since the user ID won't match.
+                    <span id="signalAllAcceptedDesc">Signal an empty credential list with a test user ID.</span>
                   </div>
                   <button id="testSignalAllAcceptedBtn" class="secondary" style="margin-top: 8px;" disabled>
                     <span>▶</span>
@@ -2863,7 +2936,11 @@ if (PublicKeyCredential.signalCurrentUserDetails) {
                     <span id="signalUserDetailsBadge" class="check-item-status unknown">Not tested</span>
                   </div>
                   <div class="check-item-summary">
-                    Signal user details with a test user ID. Uses fake data that won't match real passkeys.
+                    <span id="signalUserDetailsDesc">Signal user details with a test user ID.</span>
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                    <input type="text" id="signalNewUsername" placeholder="new.email@example.com" style="flex: 1; min-width: 150px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: var(--text); font-size: 0.85rem;">
+                    <input type="text" id="signalNewDisplayName" placeholder="New Display Name" style="flex: 1; min-width: 150px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: var(--text); font-size: 0.85rem;">
                   </div>
                   <button id="testSignalUserDetailsBtn" class="secondary" style="margin-top: 8px;" disabled>
                     <span>▶</span>

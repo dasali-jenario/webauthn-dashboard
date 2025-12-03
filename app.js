@@ -2731,7 +2731,7 @@ function initSignalEducationTabs() {
 }
 
 // ==========================================================================
-// Education Sub-Tabs (Backup Section)
+// Education Sub-Tabs (Backup Section - scoped to prevent cross-section issues)
 // ==========================================================================
 function initEducationTabs() {
   // Scope to Backup section only to prevent cross-section tab contamination
@@ -2742,7 +2742,7 @@ function initEducationTabs() {
     tab.addEventListener('click', () => {
       const targetTab = tab.dataset.eduTab;
       
-      // Remove active from all tabs and contents in backup section only
+      // Remove active from all tabs and contents
       eduTabs.forEach(t => t.classList.remove('active'));
       eduContents.forEach(c => c.classList.remove('active'));
       
@@ -2779,4 +2779,3 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
-
