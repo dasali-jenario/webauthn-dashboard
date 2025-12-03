@@ -59,6 +59,11 @@
         <span>Backup State</span>
         <span class="nav-tab-badge">L3</span>
       </button>
+      <button class="nav-tab" data-section="signal">
+        <span class="nav-tab-icon">📡</span>
+        <span>Signal API</span>
+        <span class="nav-tab-badge">L3</span>
+      </button>
     </nav>
 
     <!-- ===== Main Content ===== -->
@@ -2313,6 +2318,723 @@ if (caps.passkeyPlatformAuthenticator) {
               <div class="info-box warning" style="margin-top: 16px;">
                 <strong>⚠️ Important: RPs Cannot Control Backup</strong><br>
                 The backup flags are <strong>read-only and informational</strong> — Relying Parties have <strong>no way</strong> to control whether a passkey can be backed up or not. The authenticator and platform make this decision based on their own policies. You can only <strong>observe</strong> these flags <strong>after</strong> a passkey has been created, not influence them beforehand.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== Section: Signal API ========== -->
+      <section id="section-signal" class="check-section">
+        <div class="section-header">
+          <div class="section-title-block">
+            <h2>
+              <span>📡</span>
+              Signal API
+            </h2>
+            <p>
+              Keep passkeys in sync with your server using the WebAuthn Signal API. Signal credential changes to passkey providers so they can update or remove stale entries.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <!-- Left: Education & Deep Dive -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">📚 Understanding Signal API</div>
+                  <div class="card-subtitle">Keep passkeys consistent with server credentials</div>
+                </div>
+              </div>
+
+              <!-- Tabbed Sub-Navigation -->
+              <div class="edu-tabs">
+                <button class="edu-tab active" data-edu-tab="signal-basics">
+                  <span>📖</span> Basics
+                </button>
+                <button class="edu-tab" data-edu-tab="signal-methods">
+                  <span>🔧</span> Methods
+                </button>
+                <button class="edu-tab" data-edu-tab="signal-browser">
+                  <span>🌐</span> Browser Support
+                </button>
+              </div>
+
+              <!-- Tab Content: Basics -->
+              <div class="edu-tab-content active" id="edu-signal-basics">
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">1</span>
+                    <h4>Why Signal API?</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">Passkeys are stored in two places — the passkey provider (e.g., Google Password Manager, iCloud Keychain) and your server. These can get out of sync.</p>
+                    
+                    <div class="flag-cards">
+                      <div class="flag-card be-card">
+                        <div class="flag-card-header">
+                          <code class="flag-code">🗑️</code>
+                          <span class="flag-name">Problem 1: Deleted Credentials</span>
+                        </div>
+                        <div class="flag-card-body">
+                          <p>User deletes a passkey on your server, but it remains in their password manager.</p>
+                          <ul class="flag-list">
+                            <li>User sees old passkey in autofill</li>
+                            <li>Login fails — credential doesn't exist</li>
+                            <li>Confusing UX for the user</li>
+                          </ul>
+                        </div>
+                      </div>
+                      
+                      <div class="flag-card bs-card">
+                        <div class="flag-card-header">
+                          <code class="flag-code">👤</code>
+                          <span class="flag-name">Problem 2: Stale User Info</span>
+                        </div>
+                        <div class="flag-card-body">
+                          <p>User updates their email or display name, but the passkey still shows old info.</p>
+                          <ul class="flag-list">
+                            <li>Passkey picker shows outdated username</li>
+                            <li>User unsure which account it belongs to</li>
+                            <li>Poor credential management UX</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">2</span>
+                    <h4>How Signal API Solves This</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <div class="backup-matrix interactive">
+                      <div class="backup-matrix-item hardware-key" onclick="this.classList.toggle('expanded')">
+                        <div class="backup-matrix-flags">signalUnknownCredential</div>
+                        <div class="backup-matrix-icon">❓</div>
+                        <div class="backup-matrix-title">Signal Unknown</div>
+                        <div class="backup-matrix-desc">Tell provider a credential doesn't exist on your server.</div>
+                        <div class="backup-matrix-expanded">
+                          <div class="matrix-detail">
+                            <strong>When:</strong> User tries to log in with a passkey you don't recognize
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Effect:</strong> Provider can remove or hide the stale passkey
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Privacy:</strong> Safe to call without user being logged in
+                          </div>
+                        </div>
+                      </div>
+                      <div class="backup-matrix-item synced-ready" onclick="this.classList.toggle('expanded')">
+                        <div class="backup-matrix-flags">signalAllAcceptedCredentials</div>
+                        <div class="backup-matrix-icon">📋</div>
+                        <div class="backup-matrix-title">Signal All Accepted</div>
+                        <div class="backup-matrix-desc">Send the full list of valid credential IDs.</div>
+                        <div class="backup-matrix-expanded">
+                          <div class="matrix-detail">
+                            <strong>When:</strong> After successful login or when user deletes a passkey
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Effect:</strong> Provider removes any passkeys not on your list
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Caution:</strong> Only call when user is authenticated
+                          </div>
+                        </div>
+                      </div>
+                      <div class="backup-matrix-item sync-pending" onclick="this.classList.toggle('expanded')">
+                        <div class="backup-matrix-flags">signalCurrentUserDetails</div>
+                        <div class="backup-matrix-icon">👤</div>
+                        <div class="backup-matrix-title">Signal User Details</div>
+                        <div class="backup-matrix-desc">Update username or display name on passkeys.</div>
+                        <div class="backup-matrix-expanded">
+                          <div class="matrix-detail">
+                            <strong>When:</strong> User changes email, username, or display name
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Effect:</strong> Passkey picker shows updated user info
+                          </div>
+                          <div class="matrix-detail">
+                            <strong>Best practice:</strong> Also call on each sign-in to keep in sync
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="matrix-hint">💡 Click any card above to see more details</p>
+                  </div>
+                </div>
+
+                <!-- Cross-link to related tabs -->
+                <div class="related-links">
+                  <div class="related-links-title">🔗 Related Topics</div>
+                  <div class="related-links-grid">
+                    <button class="related-link" onclick="document.querySelector('[data-section=capabilities]').click()">
+                      <span>📋</span>
+                      <div>
+                        <strong>Client Capabilities</strong>
+                        <span>Check Signal API support via getClientCapabilities()</span>
+                      </div>
+                    </button>
+                    <button class="related-link" onclick="document.querySelector('[data-section=conditional]').click()">
+                      <span>✨</span>
+                      <div>
+                        <strong>Conditional UI</strong>
+                        <span>Where users encounter stale passkeys</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab Content: Methods -->
+              <div class="edu-tab-content" id="edu-signal-methods">
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">1</span>
+                    <h4>signalUnknownCredential()</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">Signal that a specific credential is unknown to your server. Use this when authentication fails because you don't recognize the credential.</p>
+                    
+                    <div class="code-block">
+                      <div class="code-header">
+                        <span>JavaScript</span>
+                        <button class="code-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">Copy</button>
+                      </div>
+                      <pre class="code-content">// After a failed login attempt
+const credential = await navigator.credentials.get({ ... });
+
+// Server returns 404 - credential not found
+if (response.status === 404) {
+  if (PublicKeyCredential.signalUnknownCredential) {
+    await PublicKeyCredential.signalUnknownCredential({
+      rpId: "example.com",
+      credentialId: btoa(String.fromCharCode(...new Uint8Array(
+        credential.rawId
+      ))) // base64url encoded
+    });
+  }
+}</pre>
+                    </div>
+                    
+                    <div class="security-grid" style="margin-top: 12px;">
+                      <div class="security-item good">
+                        <div class="security-icon">✅</div>
+                        <div class="security-content">
+                          <strong>Privacy-safe</strong>
+                          <p>Can call without revealing how many passkeys the user has.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">2</span>
+                    <h4>signalAllAcceptedCredentials()</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">Send the complete list of valid credential IDs for a user. The passkey provider will remove any credentials not on this list.</p>
+                    
+                    <div class="code-block">
+                      <div class="code-header">
+                        <span>JavaScript</span>
+                        <button class="code-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">Copy</button>
+                      </div>
+                      <pre class="code-content">// After successful sign-in or passkey deletion
+if (PublicKeyCredential.signalAllAcceptedCredentials) {
+  await PublicKeyCredential.signalAllAcceptedCredentials({
+    rpId: "example.com",
+    userId: "base64url-encoded-user-id",
+    allAcceptedCredentialIds: [
+      "credential-id-1-base64url",
+      "credential-id-2-base64url"
+      // ... all valid credential IDs for this user
+    ]
+  });
+}</pre>
+                    </div>
+                    
+                    <div class="security-grid" style="margin-top: 12px;">
+                      <div class="security-item caution">
+                        <div class="security-icon">⚠️</div>
+                        <div class="security-content">
+                          <strong>Only call when authenticated</strong>
+                          <p>Reveals credential count. Passing empty array removes ALL passkeys!</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">3</span>
+                    <h4>signalCurrentUserDetails()</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">Update the username and display name stored with passkeys. Call this when the user changes their profile or on each sign-in.</p>
+                    
+                    <div class="code-block">
+                      <div class="code-header">
+                        <span>JavaScript</span>
+                        <button class="code-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">Copy</button>
+                      </div>
+                      <pre class="code-content">// After profile update or sign-in
+if (PublicKeyCredential.signalCurrentUserDetails) {
+  await PublicKeyCredential.signalCurrentUserDetails({
+    rpId: "example.com",
+    userId: "base64url-encoded-user-id",
+    name: "new.email@example.com",      // username
+    displayName: "Jane Doe"              // display name
+  });
+}</pre>
+                    </div>
+                    
+                    <div class="security-grid" style="margin-top: 12px;">
+                      <div class="security-item info">
+                        <div class="security-icon">💡</div>
+                        <div class="security-content">
+                          <strong>User edits take precedence</strong>
+                          <p>If user manually edits in Password Manager, your signal won't override it.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab Content: Browser Support -->
+              <div class="edu-tab-content" id="edu-signal-browser">
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">🌐</span>
+                    <h4>Browser Support Matrix</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">Signal API is a recent addition to WebAuthn. Here's current browser support:</p>
+                    
+                    <div class="platform-comparison">
+                      <table class="comparison-table">
+                        <thead>
+                          <tr>
+                            <th>Browser</th>
+                            <th>signalUnknown</th>
+                            <th>signalAllAccepted</th>
+                            <th>signalUserDetails</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>🌐 Chrome</td>
+                            <td class="yes">✓ 132+</td>
+                            <td class="yes">✓ 132+</td>
+                            <td class="yes">✓ 132+</td>
+                          </tr>
+                          <tr>
+                            <td>🔵 Edge</td>
+                            <td class="yes">✓ 132+</td>
+                            <td class="yes">✓ 132+</td>
+                            <td class="yes">✓ 132+</td>
+                          </tr>
+                          <tr>
+                            <td>🧭 Safari</td>
+                            <td class="partial">Planned</td>
+                            <td class="partial">Planned</td>
+                            <td class="partial">Planned</td>
+                          </tr>
+                          <tr>
+                            <td>🦊 Firefox</td>
+                            <td class="no">Not yet</td>
+                            <td class="no">Not yet</td>
+                            <td class="no">Not yet</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <div class="info-box" style="margin-top: 12px;">
+                      <strong>📱 Chrome on Android:</strong><br>
+                      Signal API support on Android is coming in a future release. Currently desktop-only for Chrome.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">🔧</span>
+                    <h4>Passkey Provider Support</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <p class="edu-lead">The browser delivers the signal, but the passkey provider decides how to handle it:</p>
+                    
+                    <div class="platform-grid">
+                      <div class="platform-card">
+                        <div class="platform-header">
+                          <span class="platform-icon">🔑</span>
+                          <div class="platform-info">
+                            <strong>Google Password Manager</strong>
+                            <span class="platform-flags">Full support</span>
+                          </div>
+                        </div>
+                        <div class="platform-body">
+                          <ul>
+                            <li>Updates and removes passkeys based on signals</li>
+                            <li>Shows dialog when passkey is deleted</li>
+                            <li>Syncs changes across devices</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div class="platform-card">
+                        <div class="platform-header">
+                          <span class="platform-icon">🧩</span>
+                          <div class="platform-info">
+                            <strong>Chrome Extensions</strong>
+                            <span class="platform-flags">Varies</span>
+                          </div>
+                        </div>
+                        <div class="platform-body">
+                          <ul>
+                            <li>1Password, Dashlane, Bitwarden, etc.</li>
+                            <li>Support depends on extension</li>
+                            <li>Check provider documentation</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div class="platform-card">
+                        <div class="platform-header">
+                          <span class="platform-icon">🍎</span>
+                          <div class="platform-info">
+                            <strong>iCloud Keychain</strong>
+                            <span class="platform-flags">Pending</span>
+                          </div>
+                        </div>
+                        <div class="platform-body">
+                          <ul>
+                            <li>Safari support coming</li>
+                            <li>Apple has expressed support</li>
+                            <li>Implementation timeline TBD</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="edu-section">
+                  <div class="edu-section-header">
+                    <span class="edu-section-number">✅</span>
+                    <h4>Best Practices for Cross-Browser</h4>
+                  </div>
+                  <div class="edu-section-body">
+                    <div class="best-practice-list">
+                      <div class="best-practice">
+                        <div class="bp-number">1</div>
+                        <div class="bp-content">
+                          <strong>Always feature-detect</strong>
+                          <p>Check if the method exists before calling it.</p>
+                        </div>
+                      </div>
+                      <div class="best-practice">
+                        <div class="bp-number">2</div>
+                        <div class="bp-content">
+                          <strong>Provide fallback UX</strong>
+                          <p>If unsupported, guide users to manually manage passkeys.</p>
+                        </div>
+                      </div>
+                      <div class="best-practice">
+                        <div class="bp-number">3</div>
+                        <div class="bp-content">
+                          <strong>Don't depend on signal success</strong>
+                          <p>Signals are best-effort. Your server is the source of truth.</p>
+                        </div>
+                      </div>
+                      <div class="best-practice">
+                        <div class="bp-number">4</div>
+                        <div class="bp-content">
+                          <strong>Signal on every sign-in</strong>
+                          <p>Call signalCurrentUserDetails and signalAllAcceptedCredentials after each login.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Testing & Implementation -->
+          <div class="card">
+            <div class="card-inner">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">🧪 Signal API Testing</div>
+                  <div class="card-subtitle">Test Signal API methods on this browser</div>
+                </div>
+                <div id="signalSupportBadge" class="badge warn">
+                  <span class="badge-dot"></span>
+                  <span id="signalSupportStatus">Not tested</span>
+                </div>
+              </div>
+
+              <div class="info-box">
+                <strong>How this test works:</strong><br>
+                First, detect which Signal API methods are available. Then test them with sample data to verify the browser and passkey provider handle them correctly.
+              </div>
+
+              <div class="section-actions" style="margin-top: 12px;">
+                <button id="testSignalSupportBtn" class="primary">
+                  <span>🔍</span>
+                  <span>Detect Signal API Support</span>
+                </button>
+              </div>
+
+              <!-- Signal API Detection Results -->
+              <div id="signalTestResults" class="check-list" style="margin-top: 16px;">
+                <div class="check-item" style="opacity: 0.5;">
+                  <div class="check-item-description">
+                    Click "Detect Signal API Support" to check which methods are available.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Testing Section (shown after detection) -->
+              <div id="signalLiveTestSection" style="display: none; margin-top: 20px;">
+                <div class="section-label">🧪 Live Method Testing</div>
+                
+                <div class="info-box warning" style="margin-top: 8px;">
+                  <strong>⚠️ Testing Note:</strong><br>
+                  These tests call real Signal API methods. The passkey provider (Google Password Manager, etc.) may show dialogs or modify stored passkeys. Use test credential IDs that don't match real passkeys.
+                </div>
+
+                <!-- signalUnknownCredential Test -->
+                <div class="check-item" style="margin-top: 12px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>❓</span>
+                      <span>Test signalUnknownCredential()</span>
+                    </span>
+                    <span id="signalUnknownBadge" class="check-item-status unknown">Not tested</span>
+                  </div>
+                  <div class="check-item-summary">
+                    Signal a fake credential ID to test if the API works. Uses a random test ID that won't affect real passkeys.
+                  </div>
+                  <button id="testSignalUnknownBtn" class="secondary" style="margin-top: 8px;" disabled>
+                    <span>▶</span>
+                    <span>Test signalUnknownCredential</span>
+                  </button>
+                  <div id="signalUnknownResult" class="code-example" style="display: none; margin-top: 8px;"></div>
+                </div>
+
+                <!-- signalAllAcceptedCredentials Test -->
+                <div class="check-item" style="margin-top: 12px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>📋</span>
+                      <span>Test signalAllAcceptedCredentials()</span>
+                    </span>
+                    <span id="signalAllAcceptedBadge" class="check-item-status unknown">Not tested</span>
+                  </div>
+                  <div class="check-item-summary">
+                    Signal an empty credential list with a test user ID. This won't affect real passkeys since the user ID won't match.
+                  </div>
+                  <button id="testSignalAllAcceptedBtn" class="secondary" style="margin-top: 8px;" disabled>
+                    <span>▶</span>
+                    <span>Test signalAllAcceptedCredentials</span>
+                  </button>
+                  <div id="signalAllAcceptedResult" class="code-example" style="display: none; margin-top: 8px;"></div>
+                </div>
+
+                <!-- signalCurrentUserDetails Test -->
+                <div class="check-item" style="margin-top: 12px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>👤</span>
+                      <span>Test signalCurrentUserDetails()</span>
+                    </span>
+                    <span id="signalUserDetailsBadge" class="check-item-status unknown">Not tested</span>
+                  </div>
+                  <div class="check-item-summary">
+                    Signal user details with a test user ID. Uses fake data that won't match real passkeys.
+                  </div>
+                  <button id="testSignalUserDetailsBtn" class="secondary" style="margin-top: 8px;" disabled>
+                    <span>▶</span>
+                    <span>Test signalCurrentUserDetails</span>
+                  </button>
+                  <div id="signalUserDetailsResult" class="code-example" style="display: none; margin-top: 8px;"></div>
+                </div>
+              </div>
+
+              <!-- Raw Debug Output -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">📋 Debug Output</div>
+                <div class="log-container" style="margin-top: 8px;">
+                  <div class="log-header">
+                    <span id="signalLogLabel">Signal API test results</span>
+                    <span id="signalLogMeta"></span>
+                  </div>
+                  <div id="signalLog" class="log">{"info": "Click 'Detect Signal API Support' to begin"}</div>
+                </div>
+              </div>
+
+              <!-- Implementation Section -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">📝 Implementation Patterns</div>
+                
+                <div class="check-item" style="margin-top: 8px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🛡️</span>
+                      <span>Feature Detection Pattern</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Always check before calling Signal API methods
+async function signalUnknownCredentialSafe(rpId, credentialId) {
+  if (!PublicKeyCredential.signalUnknownCredential) {
+    console.log("signalUnknownCredential not supported");
+    // Fallback: show manual deletion instructions
+    return { supported: false };
+  }
+  
+  try {
+    await PublicKeyCredential.signalUnknownCredential({
+      rpId,
+      credentialId // base64url encoded
+    });
+    return { supported: true, success: true };
+  } catch (err) {
+    console.error("Signal failed:", err);
+    return { supported: true, success: false, error: err };
+  }
+}</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>🔄</span>
+                      <span>Post-Login Sync Pattern</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Call after every successful authentication
+async function syncPasskeysAfterLogin(user, credentials) {
+  // Update user details on passkeys
+  if (PublicKeyCredential.signalCurrentUserDetails) {
+    await PublicKeyCredential.signalCurrentUserDetails({
+      rpId: window.location.hostname,
+      userId: user.id,          // base64url encoded
+      name: user.email,
+      displayName: user.displayName
+    });
+  }
+  
+  // Sync credential list
+  if (PublicKeyCredential.signalAllAcceptedCredentials) {
+    await PublicKeyCredential.signalAllAcceptedCredentials({
+      rpId: window.location.hostname,
+      userId: user.id,
+      allAcceptedCredentialIds: credentials.map(c => c.id)
+    });
+  }
+}</div>
+                </div>
+
+                <div class="check-item" style="margin-top: 10px;">
+                  <div class="check-item-header">
+                    <span class="check-item-name">
+                      <span>❌</span>
+                      <span>Failed Auth Handler Pattern</span>
+                    </span>
+                  </div>
+                  <div class="code-example">// Handle authentication with unknown credential
+async function handleAuth() {
+  try {
+    const credential = await navigator.credentials.get({ ... });
+    const result = await verifyOnServer(credential);
+    
+    if (result.status === 404) {
+      // Credential not found on server
+      if (PublicKeyCredential.signalUnknownCredential) {
+        await PublicKeyCredential.signalUnknownCredential({
+          rpId: window.location.hostname,
+          credentialId: arrayBufferToBase64url(credential.rawId)
+        });
+        showMessage("This passkey was removed. Please use another.");
+      } else {
+        showMessage("Passkey not recognized. Try another or delete it manually.");
+      }
+    }
+  } catch (err) {
+    // Handle other errors
+  }
+}</div>
+                </div>
+              </div>
+
+              <!-- Best Practices -->
+              <div style="margin-top: 20px;">
+                <div class="section-label">✨ Best Practices</div>
+                <div class="check-list" style="margin-top: 8px;">
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>🔍</span>
+                        <span>Always feature-detect first</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      Check if <code>PublicKeyCredential.signalXxx</code> exists before calling. Provide fallback UX when unavailable.
+                    </div>
+                  </div>
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>🔒</span>
+                        <span>Use signalUnknownCredential for unauthenticated users</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      It's privacy-safe — only reveals info about a single credential the user already tried to use.
+                    </div>
+                  </div>
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>🔐</span>
+                        <span>Only use signalAllAcceptedCredentials when authenticated</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      It reveals how many credentials a user has. Never call this before the user is logged in.
+                    </div>
+                  </div>
+                  <div class="check-item">
+                    <div class="check-item-header">
+                      <span class="check-item-name">
+                        <span>🔄</span>
+                        <span>Signal on every sign-in</span>
+                      </span>
+                    </div>
+                    <div class="check-item-summary">
+                      Keep passkeys in sync by calling signalCurrentUserDetails and signalAllAcceptedCredentials after each authentication.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-box" style="margin-top: 16px;">
+                <strong>📚 Reference:</strong>
+                <a href="https://developer.chrome.com/docs/identity/webauthn-signal-api" target="_blank" rel="noreferrer" style="color: var(--accent);">
+                  Chrome Signal API Documentation ↗
+                </a>
               </div>
             </div>
           </div>

@@ -82,6 +82,25 @@ const backupSupportBadge = document.getElementById("backupSupportBadge");
 const backupSupportStatus = document.getElementById("backupSupportStatus");
 const backupTestResults = document.getElementById("backupTestResults");
 
+// Signal API Section
+const testSignalSupportBtn = document.getElementById("testSignalSupportBtn");
+const signalSupportBadge = document.getElementById("signalSupportBadge");
+const signalSupportStatus = document.getElementById("signalSupportStatus");
+const signalTestResults = document.getElementById("signalTestResults");
+const signalLiveTestSection = document.getElementById("signalLiveTestSection");
+const signalLog = document.getElementById("signalLog");
+const signalLogLabel = document.getElementById("signalLogLabel");
+const signalLogMeta = document.getElementById("signalLogMeta");
+const testSignalUnknownBtn = document.getElementById("testSignalUnknownBtn");
+const testSignalAllAcceptedBtn = document.getElementById("testSignalAllAcceptedBtn");
+const testSignalUserDetailsBtn = document.getElementById("testSignalUserDetailsBtn");
+const signalUnknownBadge = document.getElementById("signalUnknownBadge");
+const signalAllAcceptedBadge = document.getElementById("signalAllAcceptedBadge");
+const signalUserDetailsBadge = document.getElementById("signalUserDetailsBadge");
+const signalUnknownResult = document.getElementById("signalUnknownResult");
+const signalAllAcceptedResult = document.getElementById("signalAllAcceptedResult");
+const signalUserDetailsResult = document.getElementById("signalUserDetailsResult");
+
 // ==========================================================================
 // Capability Definitions (WebAuthn L3) - Rich Educational Content
 // ==========================================================================
@@ -2304,6 +2323,414 @@ function initBackup() {
 }
 
 // ==========================================================================
+// Signal API Testing
+// ==========================================================================
+function setSignalBadgeState(state, text) {
+  signalSupportBadge.classList.remove("ok", "warn", "error");
+  signalSupportBadge.classList.add(state);
+  signalSupportStatus.textContent = text;
+}
+
+function updateSignalLog(data) {
+  signalLog.textContent = JSON.stringify(data, null, 2);
+  signalLogMeta.textContent = new Date().toLocaleTimeString();
+}
+
+function arrayBufferToBase64url(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function generateTestUserId() {
+  const userId = new Uint8Array(16);
+  crypto.getRandomValues(userId);
+  return arrayBufferToBase64url(userId);
+}
+
+function generateTestCredentialId() {
+  const credId = new Uint8Array(32);
+  crypto.getRandomValues(credId);
+  return arrayBufferToBase64url(credId);
+}
+
+function renderSignalDetectionResults(results) {
+  signalTestResults.innerHTML = "";
+  
+  const methods = [
+    {
+      key: "signalUnknownCredential",
+      name: "signalUnknownCredential()",
+      icon: "❓",
+      description: "Signal that a credential is unknown to your server",
+      supported: results.signalUnknownCredential
+    },
+    {
+      key: "signalAllAcceptedCredentials",
+      name: "signalAllAcceptedCredentials()",
+      icon: "📋",
+      description: "Signal the list of valid credential IDs for a user",
+      supported: results.signalAllAcceptedCredentials
+    },
+    {
+      key: "signalCurrentUserDetails",
+      name: "signalCurrentUserDetails()",
+      icon: "👤",
+      description: "Signal updated username and display name",
+      supported: results.signalCurrentUserDetails
+    }
+  ];
+
+  let supported = 0;
+  let unsupported = 0;
+
+  methods.forEach((method, i) => {
+    if (method.supported) supported++;
+    else unsupported++;
+
+    const item = document.createElement("div");
+    item.className = "check-item animated";
+    item.style.animationDelay = `${i * 0.05}s`;
+
+    const dotClass = method.supported ? "ok" : "no";
+    const statusClass = method.supported ? "supported" : "not-supported";
+    const statusLabel = method.supported ? "✓ Available" : "✗ Not Available";
+
+    item.innerHTML = `
+      <div class="check-item-header">
+        <span class="check-item-name">
+          <span class="dot-indicator ${dotClass}"></span>
+          <span>${method.icon} ${method.name}</span>
+        </span>
+        <span class="check-item-status ${statusClass}">${statusLabel}</span>
+      </div>
+      <div class="check-item-summary">${method.description}</div>
+    `;
+    signalTestResults.appendChild(item);
+  });
+
+  // Update overall badge
+  if (supported === 3) {
+    setSignalBadgeState("ok", "Full Support");
+  } else if (supported > 0) {
+    setSignalBadgeState("warn", `${supported}/3 Available`);
+  } else {
+    setSignalBadgeState("error", "Not Supported");
+  }
+
+  // Show live test section if any methods are available
+  if (supported > 0) {
+    signalLiveTestSection.style.display = "block";
+    
+    // Enable/disable individual test buttons
+    testSignalUnknownBtn.disabled = !results.signalUnknownCredential;
+    testSignalAllAcceptedBtn.disabled = !results.signalAllAcceptedCredentials;
+    testSignalUserDetailsBtn.disabled = !results.signalCurrentUserDetails;
+  }
+
+  updateSignalLog({
+    detection: results,
+    summary: {
+      supported,
+      unsupported,
+      browserInfo: detectBrowser()
+    }
+  });
+}
+
+async function testSignalSupport() {
+  if (typeof PublicKeyCredential === "undefined") {
+    setSignalBadgeState("error", "No WebAuthn");
+    signalTestResults.innerHTML = `
+      <div class="check-item">
+        <div class="check-item-description" style="color: var(--danger);">
+          WebAuthn is not available on this platform.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  testSignalSupportBtn.disabled = true;
+  testSignalSupportBtn.innerHTML = "<span class='loading'>⏳</span><span>Detecting…</span>";
+  setSignalBadgeState("warn", "Detecting…");
+
+  const results = {
+    signalUnknownCredential: typeof PublicKeyCredential.signalUnknownCredential === "function",
+    signalAllAcceptedCredentials: typeof PublicKeyCredential.signalAllAcceptedCredentials === "function",
+    signalCurrentUserDetails: typeof PublicKeyCredential.signalCurrentUserDetails === "function"
+  };
+
+  // Also check via getClientCapabilities if available
+  let capsResults = null;
+  if (typeof PublicKeyCredential.getClientCapabilities === "function") {
+    try {
+      const caps = await PublicKeyCredential.getClientCapabilities();
+      capsResults = {
+        signalAllAcceptedCredentials: caps.signalAllAcceptedCredentials,
+        signalCurrentUserDetails: caps.signalCurrentUserDetails,
+        signalUnknownCredential: caps.signalUnknownCredential
+      };
+    } catch (err) {
+      capsResults = { error: err.message };
+    }
+  }
+
+  signalLogLabel.textContent = "Signal API Detection Results";
+  
+  renderSignalDetectionResults(results);
+  
+  // Update log with both detection methods
+  updateSignalLog({
+    methodDetection: results,
+    getClientCapabilities: capsResults || "Not available",
+    browserInfo: detectBrowser(),
+    timestamp: new Date().toISOString()
+  });
+
+  testSignalSupportBtn.disabled = false;
+  testSignalSupportBtn.innerHTML = "<span>🔍</span><span>Detect Signal API Support</span>";
+}
+
+async function testSignalUnknownCredential() {
+  testSignalUnknownBtn.disabled = true;
+  testSignalUnknownBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
+  signalUnknownBadge.textContent = "Testing…";
+  signalUnknownBadge.className = "check-item-status unknown";
+
+  const testCredentialId = generateTestCredentialId();
+  const rpId = window.location.hostname;
+
+  try {
+    await PublicKeyCredential.signalUnknownCredential({
+      rpId: rpId,
+      credentialId: testCredentialId
+    });
+
+    signalUnknownBadge.textContent = "✓ Success";
+    signalUnknownBadge.className = "check-item-status supported";
+    
+    signalUnknownResult.textContent = `✅ signalUnknownCredential() completed successfully
+
+Parameters used:
+  rpId: "${rpId}"
+  credentialId: "${testCredentialId}"
+
+The passkey provider received the signal. If a matching passkey existed, it would be marked for removal or hidden.`;
+    signalUnknownResult.style.display = "block";
+    signalUnknownResult.style.color = "var(--success)";
+
+    updateSignalLog({
+      method: "signalUnknownCredential",
+      status: "success",
+      params: { rpId, credentialId: testCredentialId },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (err) {
+    signalUnknownBadge.textContent = "✗ Error";
+    signalUnknownBadge.className = "check-item-status not-supported";
+    
+    signalUnknownResult.textContent = `❌ signalUnknownCredential() failed
+
+Error: ${err.name}: ${err.message}
+
+Parameters used:
+  rpId: "${rpId}"
+  credentialId: "${testCredentialId}"`;
+    signalUnknownResult.style.display = "block";
+    signalUnknownResult.style.color = "var(--danger)";
+
+    updateSignalLog({
+      method: "signalUnknownCredential",
+      status: "error",
+      error: { name: err.name, message: err.message },
+      params: { rpId, credentialId: testCredentialId },
+      timestamp: new Date().toISOString()
+    });
+  } finally {
+    testSignalUnknownBtn.disabled = false;
+    testSignalUnknownBtn.innerHTML = "<span>▶</span><span>Test signalUnknownCredential</span>";
+  }
+}
+
+async function testSignalAllAcceptedCredentials() {
+  testSignalAllAcceptedBtn.disabled = true;
+  testSignalAllAcceptedBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
+  signalAllAcceptedBadge.textContent = "Testing…";
+  signalAllAcceptedBadge.className = "check-item-status unknown";
+
+  const testUserId = generateTestUserId();
+  const testCredentialIds = [generateTestCredentialId(), generateTestCredentialId()];
+  const rpId = window.location.hostname;
+
+  try {
+    await PublicKeyCredential.signalAllAcceptedCredentials({
+      rpId: rpId,
+      userId: testUserId,
+      allAcceptedCredentialIds: testCredentialIds
+    });
+
+    signalAllAcceptedBadge.textContent = "✓ Success";
+    signalAllAcceptedBadge.className = "check-item-status supported";
+    
+    signalAllAcceptedResult.textContent = `✅ signalAllAcceptedCredentials() completed successfully
+
+Parameters used:
+  rpId: "${rpId}"
+  userId: "${testUserId}"
+  allAcceptedCredentialIds: [
+    "${testCredentialIds[0]}",
+    "${testCredentialIds[1]}"
+  ]
+
+The passkey provider received the list. Any passkeys for this user not on the list would be removed.`;
+    signalAllAcceptedResult.style.display = "block";
+    signalAllAcceptedResult.style.color = "var(--success)";
+
+    updateSignalLog({
+      method: "signalAllAcceptedCredentials",
+      status: "success",
+      params: { rpId, userId: testUserId, credentialCount: testCredentialIds.length },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (err) {
+    signalAllAcceptedBadge.textContent = "✗ Error";
+    signalAllAcceptedBadge.className = "check-item-status not-supported";
+    
+    signalAllAcceptedResult.textContent = `❌ signalAllAcceptedCredentials() failed
+
+Error: ${err.name}: ${err.message}
+
+Parameters used:
+  rpId: "${rpId}"
+  userId: "${testUserId}"
+  allAcceptedCredentialIds: [2 test IDs]`;
+    signalAllAcceptedResult.style.display = "block";
+    signalAllAcceptedResult.style.color = "var(--danger)";
+
+    updateSignalLog({
+      method: "signalAllAcceptedCredentials",
+      status: "error",
+      error: { name: err.name, message: err.message },
+      params: { rpId, userId: testUserId },
+      timestamp: new Date().toISOString()
+    });
+  } finally {
+    testSignalAllAcceptedBtn.disabled = false;
+    testSignalAllAcceptedBtn.innerHTML = "<span>▶</span><span>Test signalAllAcceptedCredentials</span>";
+  }
+}
+
+async function testSignalCurrentUserDetails() {
+  testSignalUserDetailsBtn.disabled = true;
+  testSignalUserDetailsBtn.innerHTML = "<span class='loading'>⏳</span><span>Testing…</span>";
+  signalUserDetailsBadge.textContent = "Testing…";
+  signalUserDetailsBadge.className = "check-item-status unknown";
+
+  const testUserId = generateTestUserId();
+  const rpId = window.location.hostname;
+  const testName = "test-user@example.com";
+  const testDisplayName = "WebAuthn Test User";
+
+  try {
+    await PublicKeyCredential.signalCurrentUserDetails({
+      rpId: rpId,
+      userId: testUserId,
+      name: testName,
+      displayName: testDisplayName
+    });
+
+    signalUserDetailsBadge.textContent = "✓ Success";
+    signalUserDetailsBadge.className = "check-item-status supported";
+    
+    signalUserDetailsResult.textContent = `✅ signalCurrentUserDetails() completed successfully
+
+Parameters used:
+  rpId: "${rpId}"
+  userId: "${testUserId}"
+  name: "${testName}"
+  displayName: "${testDisplayName}"
+
+The passkey provider received the updated user details. Matching passkeys would be updated to show this info.`;
+    signalUserDetailsResult.style.display = "block";
+    signalUserDetailsResult.style.color = "var(--success)";
+
+    updateSignalLog({
+      method: "signalCurrentUserDetails",
+      status: "success",
+      params: { rpId, userId: testUserId, name: testName, displayName: testDisplayName },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (err) {
+    signalUserDetailsBadge.textContent = "✗ Error";
+    signalUserDetailsBadge.className = "check-item-status not-supported";
+    
+    signalUserDetailsResult.textContent = `❌ signalCurrentUserDetails() failed
+
+Error: ${err.name}: ${err.message}
+
+Parameters used:
+  rpId: "${rpId}"
+  userId: "${testUserId}"
+  name: "${testName}"
+  displayName: "${testDisplayName}"`;
+    signalUserDetailsResult.style.display = "block";
+    signalUserDetailsResult.style.color = "var(--danger)";
+
+    updateSignalLog({
+      method: "signalCurrentUserDetails",
+      status: "error",
+      error: { name: err.name, message: err.message },
+      params: { rpId, userId: testUserId },
+      timestamp: new Date().toISOString()
+    });
+  } finally {
+    testSignalUserDetailsBtn.disabled = false;
+    testSignalUserDetailsBtn.innerHTML = "<span>▶</span><span>Test signalCurrentUserDetails</span>";
+  }
+}
+
+function initSignal() {
+  testSignalSupportBtn.addEventListener("click", testSignalSupport);
+  testSignalUnknownBtn.addEventListener("click", testSignalUnknownCredential);
+  testSignalAllAcceptedBtn.addEventListener("click", testSignalAllAcceptedCredentials);
+  testSignalUserDetailsBtn.addEventListener("click", testSignalCurrentUserDetails);
+  
+  // Initialize education sub-tabs for signal section
+  initSignalEducationTabs();
+}
+
+function initSignalEducationTabs() {
+  const eduTabs = document.querySelectorAll('#section-signal .edu-tab');
+  const eduContents = document.querySelectorAll('#section-signal .edu-tab-content');
+  
+  eduTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.eduTab;
+      
+      // Remove active from all tabs and contents in signal section
+      eduTabs.forEach(t => t.classList.remove('active'));
+      eduContents.forEach(c => c.classList.remove('active'));
+      
+      // Add active to clicked tab
+      tab.classList.add('active');
+      
+      // Show corresponding content
+      const targetContent = document.getElementById(`edu-${targetTab}`);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    });
+  });
+}
+
+// ==========================================================================
 // Education Sub-Tabs
 // ==========================================================================
 function initEducationTabs() {
@@ -2341,6 +2768,7 @@ function init() {
   initPrf();
   initConditional();
   initBackup();
+  initSignal();
   updateEnvironment();
 }
 
