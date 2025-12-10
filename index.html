@@ -1240,6 +1240,66 @@ const encrypted = await crypto.subtle.encrypt(
                 </div>
               </div>
 
+              <!-- Live Encryption/Decryption Demo -->
+              <div id="prfEncryptionDemoSection" style="display: none; margin-top: 20px;">
+                <div class="section-label">🔐 Live Demo: Encrypt & Decrypt Text</div>
+                <div class="hint-result" style="margin-top: 8px;">
+                  <div class="hint-result-content">
+                    <!-- Encryption Input -->
+                    <label style="display: block; margin-bottom: 12px;">
+                      <span style="font-size: 0.78rem; color: var(--text-muted);">Enter text to encrypt:</span>
+                      <textarea id="prfEncryptInput" placeholder="Type your secret message here..." 
+                        style="width: 100%; margin-top: 4px; padding: 10px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-main); font-size: 0.85rem; min-height: 80px; resize: vertical;"></textarea>
+                    </label>
+                    
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                      <button id="prfEncryptBtn" class="primary">
+                        <span>🔒</span>
+                        <span>Encrypt with Passkey</span>
+                      </button>
+                      <button id="prfDecryptBtn" class="secondary" disabled>
+                        <span>🔓</span>
+                        <span>Decrypt with Passkey</span>
+                      </button>
+                    </div>
+
+                    <!-- Encrypted Output -->
+                    <div id="prfEncryptedResult" style="margin-top: 16px; display: none;">
+                      <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">
+                        🔒 Encrypted Data (Base64):
+                      </div>
+                      <code id="prfEncryptedHex" style="display: block; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; font-size: 0.72rem; word-break: break-all; color: var(--accent); max-height: 100px; overflow-y: auto;"></code>
+                      <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;">
+                        Contains: IV (12 bytes) + Ciphertext. Only your passkey can decrypt this!
+                      </div>
+                    </div>
+
+                    <!-- Decrypted Output -->
+                    <div id="prfDecryptedResult" style="margin-top: 16px; display: none;">
+                      <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">
+                        🔓 Decrypted Text:
+                      </div>
+                      <div id="prfDecryptedText" style="padding: 10px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; font-size: 0.85rem; color: var(--success); white-space: pre-wrap;"></div>
+                    </div>
+
+                    <!-- Status Messages -->
+                    <div id="prfCryptoStatus" style="margin-top: 12px; display: none;">
+                      <div class="info-box" id="prfCryptoStatusBox">
+                        <span id="prfCryptoStatusIcon">ℹ️</span>
+                        <span id="prfCryptoStatusText"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="info-box" style="margin-top: 12px; background: rgba(139, 92, 246, 0.08); border-color: rgba(139, 92, 246, 0.2);">
+                  <strong>💡 How it works:</strong><br>
+                  1. The PRF extension derives a unique 256-bit key from your passkey + salt<br>
+                  2. We use AES-GCM encryption with a random 12-byte IV<br>
+                  3. Only the same passkey + salt can derive the key to decrypt the data
+                </div>
+              </div>
+
               <div class="info-box" style="margin-top: 16px;">
                 <strong>⚠️ Browser Support</strong><br>
                 PRF is supported in Chrome 109+, Edge 109+, and Safari 17+. Firefox support is planned. The authenticator must also support the hmac-secret CTAP2 extension.

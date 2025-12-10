@@ -59,8 +59,24 @@ const derivePrfKeyBtn = document.getElementById("derivePrfKeyBtn");
 const prfDerivedKeyResult = document.getElementById("prfDerivedKeyResult");
 const prfDerivedKeyHex = document.getElementById("prfDerivedKeyHex");
 
+// PRF Encryption Demo Elements
+const prfEncryptionDemoSection = document.getElementById("prfEncryptionDemoSection");
+const prfEncryptInput = document.getElementById("prfEncryptInput");
+const prfEncryptBtn = document.getElementById("prfEncryptBtn");
+const prfDecryptBtn = document.getElementById("prfDecryptBtn");
+const prfEncryptedResult = document.getElementById("prfEncryptedResult");
+const prfEncryptedHex = document.getElementById("prfEncryptedHex");
+const prfDecryptedResult = document.getElementById("prfDecryptedResult");
+const prfDecryptedText = document.getElementById("prfDecryptedText");
+const prfCryptoStatus = document.getElementById("prfCryptoStatus");
+const prfCryptoStatusBox = document.getElementById("prfCryptoStatusBox");
+const prfCryptoStatusIcon = document.getElementById("prfCryptoStatusIcon");
+const prfCryptoStatusText = document.getElementById("prfCryptoStatusText");
+
 // Store credential for PRF demo
 let prfCredentialId = null;
+// Store encrypted data for decryption demo
+let prfEncryptedData = null;
 
 // Conditional UI Section
 const testConditionalSupportBtn = document.getElementById("testConditionalSupportBtn");
@@ -1325,9 +1341,10 @@ ${JSON.stringify(details, null, 2)}
     prfTestResults.appendChild(detailsItem);
   }
 
-  // Show live demo section if supported
+  // Show live demo sections if supported
   if (supported) {
     prfDemoSection.style.display = "block";
+    prfEncryptionDemoSection.style.display = "block";
   }
 }
 
@@ -1488,9 +1505,213 @@ async function derivePrfKey() {
   }
 }
 
+// Helper: Show crypto status message
+function showCryptoStatus(message, type = "info") {
+  prfCryptoStatus.style.display = "block";
+  prfCryptoStatusText.textContent = message;
+  
+  // Reset styles
+  prfCryptoStatusBox.classList.remove("warning");
+  prfCryptoStatusBox.style.background = "";
+  prfCryptoStatusBox.style.borderColor = "";
+  
+  if (type === "success") {
+    prfCryptoStatusIcon.textContent = "✅";
+    prfCryptoStatusBox.style.background = "rgba(34, 197, 94, 0.1)";
+    prfCryptoStatusBox.style.borderColor = "rgba(34, 197, 94, 0.3)";
+  } else if (type === "error") {
+    prfCryptoStatusIcon.textContent = "❌";
+    prfCryptoStatusBox.style.background = "rgba(239, 68, 68, 0.1)";
+    prfCryptoStatusBox.style.borderColor = "rgba(239, 68, 68, 0.3)";
+  } else if (type === "warning") {
+    prfCryptoStatusIcon.textContent = "⚠️";
+    prfCryptoStatusBox.classList.add("warning");
+  } else {
+    prfCryptoStatusIcon.textContent = "ℹ️";
+  }
+}
+
+// Helper: Hide crypto status
+function hideCryptoStatus() {
+  prfCryptoStatus.style.display = "none";
+}
+
+// Helper: Derive PRF key for encryption/decryption operations
+async function derivePrfKeyForCrypto() {
+  const saltValue = prfSaltInput.value || "default-encryption-salt";
+  const salt = createPrfSalt(saltValue);
+  
+  const challenge = new Uint8Array(32);
+  crypto.getRandomValues(challenge);
+
+  const getOptions = {
+    publicKey: {
+      challenge: challenge,
+      rpId: window.location.hostname,
+      userVerification: "preferred",
+      timeout: 120000,
+      allowCredentials: [{
+        type: "public-key",
+        id: prfCredentialId
+      }],
+      extensions: {
+        prf: {
+          eval: {
+            first: salt
+          }
+        }
+      }
+    }
+  };
+
+  const assertion = await navigator.credentials.get(getOptions);
+  const extResults = assertion.getClientExtensionResults();
+  
+  if (!extResults.prf?.results?.first) {
+    throw new Error("PRF extension did not return a derived key");
+  }
+  
+  // Import the derived key for AES-GCM
+  const derivedKeyBytes = new Uint8Array(extResults.prf.results.first);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    derivedKeyBytes,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+  
+  return cryptoKey;
+}
+
+// Encrypt text using PRF-derived key
+async function encryptWithPrf() {
+  if (!prfCredentialId) {
+    showCryptoStatus("Please run the PRF support test first to create a credential.", "warning");
+    return;
+  }
+  
+  const plaintext = prfEncryptInput.value.trim();
+  if (!plaintext) {
+    showCryptoStatus("Please enter some text to encrypt.", "warning");
+    return;
+  }
+  
+  prfEncryptBtn.disabled = true;
+  prfEncryptBtn.innerHTML = "<span class='loading'>⏳</span><span>Encrypting…</span>";
+  hideCryptoStatus();
+  
+  try {
+    showCryptoStatus("Authenticate with your passkey to derive the encryption key...", "info");
+    
+    // Derive the crypto key using PRF
+    const cryptoKey = await derivePrfKeyForCrypto();
+    
+    // Generate random IV (12 bytes for AES-GCM)
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    
+    // Encode plaintext to bytes
+    const plaintextBytes = new TextEncoder().encode(plaintext);
+    
+    // Encrypt using AES-GCM
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      cryptoKey,
+      plaintextBytes
+    );
+    
+    // Combine IV + ciphertext for storage
+    const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(ciphertext), iv.length);
+    
+    // Store for decryption demo
+    prfEncryptedData = combined;
+    
+    // Display as base64
+    const base64 = btoa(String.fromCharCode(...combined));
+    prfEncryptedHex.textContent = base64;
+    prfEncryptedResult.style.display = "block";
+    prfDecryptedResult.style.display = "none";
+    prfDecryptBtn.disabled = false;
+    
+    showCryptoStatus(`Encrypted ${plaintext.length} characters → ${combined.length} bytes. Only your passkey can decrypt this!`, "success");
+    
+  } catch (err) {
+    console.error("Encryption error:", err);
+    if (err.name === "NotAllowedError") {
+      showCryptoStatus("Authentication cancelled. Please complete the passkey prompt to encrypt.", "warning");
+    } else {
+      showCryptoStatus(`Encryption failed: ${err.message}`, "error");
+    }
+  } finally {
+    prfEncryptBtn.disabled = false;
+    prfEncryptBtn.innerHTML = "<span>🔒</span><span>Encrypt with Passkey</span>";
+  }
+}
+
+// Decrypt text using PRF-derived key
+async function decryptWithPrf() {
+  if (!prfCredentialId) {
+    showCryptoStatus("Please run the PRF support test first.", "warning");
+    return;
+  }
+  
+  if (!prfEncryptedData) {
+    showCryptoStatus("No encrypted data found. Encrypt something first!", "warning");
+    return;
+  }
+  
+  prfDecryptBtn.disabled = true;
+  prfDecryptBtn.innerHTML = "<span class='loading'>⏳</span><span>Decrypting…</span>";
+  hideCryptoStatus();
+  
+  try {
+    showCryptoStatus("Authenticate with your passkey to derive the decryption key...", "info");
+    
+    // Derive the crypto key using PRF (same key as encryption due to determinism)
+    const cryptoKey = await derivePrfKeyForCrypto();
+    
+    // Extract IV and ciphertext
+    const iv = prfEncryptedData.slice(0, 12);
+    const ciphertext = prfEncryptedData.slice(12);
+    
+    // Decrypt using AES-GCM
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      cryptoKey,
+      ciphertext
+    );
+    
+    // Decode to string
+    const decryptedText = new TextDecoder().decode(decrypted);
+    
+    // Display result
+    prfDecryptedText.textContent = decryptedText;
+    prfDecryptedResult.style.display = "block";
+    
+    showCryptoStatus("Decryption successful! The same passkey + salt produced the identical key.", "success");
+    
+  } catch (err) {
+    console.error("Decryption error:", err);
+    if (err.name === "NotAllowedError") {
+      showCryptoStatus("Authentication cancelled. Please complete the passkey prompt to decrypt.", "warning");
+    } else if (err.name === "OperationError") {
+      showCryptoStatus("Decryption failed! This can happen if the salt changed or a different passkey was used.", "error");
+    } else {
+      showCryptoStatus(`Decryption failed: ${err.message}`, "error");
+    }
+  } finally {
+    prfDecryptBtn.disabled = false;
+    prfDecryptBtn.innerHTML = "<span>🔓</span><span>Decrypt with Passkey</span>";
+  }
+}
+
 function initPrf() {
   testPrfSupportBtn.addEventListener("click", testPrfSupport);
   derivePrfKeyBtn.addEventListener("click", derivePrfKey);
+  prfEncryptBtn.addEventListener("click", encryptWithPrf);
+  prfDecryptBtn.addEventListener("click", decryptWithPrf);
 }
 
 // ==========================================================================
@@ -2731,12 +2952,11 @@ function initSignalEducationTabs() {
 }
 
 // ==========================================================================
-// Education Sub-Tabs (Backup Section - scoped to prevent cross-section issues)
+// Education Sub-Tabs
 // ==========================================================================
 function initEducationTabs() {
-  // Scope to Backup section only to prevent cross-section tab contamination
-  const eduTabs = document.querySelectorAll('#section-backup .edu-tab');
-  const eduContents = document.querySelectorAll('#section-backup .edu-tab-content');
+  const eduTabs = document.querySelectorAll('.edu-tab');
+  const eduContents = document.querySelectorAll('.edu-tab-content');
   
   eduTabs.forEach(tab => {
     tab.addEventListener('click', () => {
